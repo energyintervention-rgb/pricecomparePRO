@@ -11,7 +11,6 @@
   <meta name="theme-color" content="#12111a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
   <style>
     :root{
       --bg:#12111a;--surface:#1e1c2a;--surface2:#272537;--border:#ffffff0f;
@@ -21,8 +20,6 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden;}
-
-    /* SPLASH */
     #splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;animation:spOut 0.5s ease 2.3s forwards;}
     .sp-icon{font-size:64px;animation:spBounce 0.7s cubic-bezier(.36,.07,.19,.97) both;}
     .sp-title{font-family:var(--disp);font-weight:800;font-size:2.6rem;color:var(--accent);letter-spacing:-1px;}
@@ -32,21 +29,15 @@
     @keyframes spBounce{0%{transform:scale(.3) rotate(-20deg);opacity:0}65%{transform:scale(1.15) rotate(4deg)}100%{transform:scale(1) rotate(0);opacity:1}}
     @keyframes spLoad{to{width:100%;}}
     @keyframes spOut{to{opacity:0;pointer-events:none;visibility:hidden;}}
-
-    /* LAYOUT */
     #app{height:100%;display:flex;flex-direction:column;}
     .pages{flex:1;overflow:hidden;position:relative;}
     .page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;padding:14px 14px calc(var(--nav-h)+24px);display:none;}
     .page.active{display:block;}
-
-    /* NAV */
     nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;}
     .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text2);font-family:var(--mono);font-size:9px;cursor:pointer;padding:8px 2px;transition:color 0.2s;}
     .nb .ni{font-size:20px;transition:transform 0.2s;}
     .nb.active{color:var(--accent);}
     .nb.active .ni{transform:scale(1.15);filter:drop-shadow(0 0 8px var(--accent));}
-
-    /* TOPBAR */
     .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
     .topbar h1{font-family:var(--disp);font-weight:800;font-size:1.5rem;letter-spacing:-0.5px;}
     .topbar-right{display:flex;align-items:center;gap:6px;}
@@ -54,21 +45,17 @@
     .lbtn{background:var(--surface2);border:none;color:var(--text2);padding:5px 10px;border-radius:20px;font-family:var(--mono);font-size:10px;cursor:pointer;transition:all 0.2s;}
     .lbtn.active{background:var(--accent);color:#000;font-weight:700;}
     .curr-btn{background:var(--surface2);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;}
-
-    /* CURRENCY PANEL */
     #currPanel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;}
     #currPanel.open{display:block;}
     .curr-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:10px;}
-    .curr-row select{background:var(--surface2);border:1.5px solid transparent;border-radius:8px;padding:8px;color:var(--text);font-family:var(--mono);font-size:0.8rem;outline:none;}
+    .curr-row select,.curr-amount-row input{background:var(--surface2);border:1.5px solid transparent;border-radius:8px;padding:8px;color:var(--text);font-family:var(--mono);font-size:0.8rem;outline:none;width:100%;}
+    .curr-row select:focus,.curr-amount-row input:focus{border-color:var(--accent);}
+    .curr-amount-row{margin-bottom:8px;}
     .curr-swap{background:var(--surface2);border:none;color:var(--accent2);font-size:18px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-    .curr-amount-row input{width:100%;background:var(--surface2);border:1.5px solid transparent;border-radius:8px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:0.9rem;outline:none;margin-bottom:8px;}
-    .curr-amount-row input:focus{border-color:var(--accent);}
     .curr-result{background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
     .curr-result-val{font-family:var(--disp);font-size:1.4rem;font-weight:800;color:var(--accent);}
     .curr-result-rate{font-size:0.62rem;color:var(--text2);}
     .curr-apply{background:var(--accent);border:none;border-radius:8px;padding:8px 14px;font-family:var(--mono);font-size:0.78rem;font-weight:700;color:#000;cursor:pointer;}
-
-    /* COMMON */
     .tag{display:inline-block;background:var(--surface2);color:var(--text2);font-size:0.55rem;padding:3px 8px;border-radius:4px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid var(--border);}
     .sec-lbl{font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text2);margin-bottom:7px;margin-top:14px;display:block;}
     input[type="text"],input[type="number"],select,textarea{width:100%;background:var(--surface2);border:1.5px solid transparent;border-radius:8px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:0.82rem;outline:none;transition:border-color 0.2s;}
@@ -83,20 +70,19 @@
     .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2);}
     .btn-ghost:hover{border-color:var(--warn);color:var(--warn);}
     .btn-wa{background:#25D366;color:#fff;}
-    .btn-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;}
     .empty-state{text-align:center;padding:36px 20px;color:var(--text2);}
     .empty-state .ei{font-size:44px;margin-bottom:10px;}
     .empty-state p{font-size:0.78rem;line-height:1.6;}
 
-    /* ── COMPARE: HORIZONTAL SCROLL ── */
+    /* COMPARE SCROLL */
     .compare-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px 12px;scroll-snap-type:x mandatory;}
     .compare-scroll-wrap::-webkit-scrollbar{height:3px;}
     .compare-scroll-wrap::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
     .compare-scroll-inner{display:flex;gap:10px;width:max-content;}
     .item-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:13px;width:185px;flex-shrink:0;position:relative;scroll-snap-align:start;transition:border-color 0.2s;}
     .item-card.winner{border-color:var(--accent);background:#b8f59a0a;}
-    .item-card-add{background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--r);width:60px;min-height:220px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text2);cursor:pointer;scroll-snap-align:start;}
+    .item-card-add{background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--r);width:60px;min-height:240px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text2);cursor:pointer;scroll-snap-align:start;}
     .item-card-add:active{border-color:var(--accent);color:var(--accent);}
     .item-num{font-family:var(--disp);font-size:0.58rem;font-weight:800;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.08em;}
     .item-card.winner .item-num{color:var(--accent);}
@@ -107,14 +93,11 @@
     .urow{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
     .del-x{position:absolute;top:7px;right:7px;background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;padding:2px 4px;border-radius:5px;}
     .del-x:active{color:var(--warn);}
-    /* store select inside card — full width scrollable */
-    .store-sel{width:100%;background:var(--surface2);border:1.5px solid transparent;border-radius:8px;padding:6px 8px;color:var(--text);font-family:var(--mono);font-size:0.72rem;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237e7a99'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    .store-sel{width:100%;background:var(--surface2);border:1.5px solid transparent;border-radius:8px;padding:6px 28px 6px 8px;color:var(--text);font-family:var(--mono);font-size:0.72rem;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237e7a99'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
     .store-sel:focus{border-color:var(--accent2);}
-    .disc-row{display:flex;align-items:center;gap:5px;margin-top:5px;}
+    .disc-row{display:flex;align-items:center;gap:5px;}
     .disc-row input{flex:1;font-size:0.75rem;padding:6px 8px;}
     .disc-lbl{font-size:0.65rem;color:var(--text2);flex-shrink:0;}
-
-    /* verdict */
     .verdict-best{background:linear-gradient(135deg,#1a3025,#1f3830);border:1.5px solid #b8f59a44;border-radius:var(--r);padding:16px;margin-bottom:10px;}
     .verdict-lbl{font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:#b8f59a88;margin-bottom:3px;}
     .verdict-name{font-family:var(--disp);font-size:1.1rem;font-weight:800;color:var(--accent);}
@@ -128,8 +111,6 @@
     .vother-store{font-size:0.62rem;color:var(--text2);}
     .vother-ppu{font-size:0.65rem;color:var(--text2);}
     .vother-diff{font-size:0.6rem;color:var(--warn);margin-left:4px;}
-
-    /* LIST */
     .list-add-row{display:flex;gap:8px;margin-bottom:12px;}
     .list-add-row input{flex:1;}
     .list-item-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:11px 12px;margin-bottom:7px;border:1.5px solid transparent;}
@@ -138,85 +119,85 @@
     .chk.on{background:var(--accent);border-color:var(--accent);color:#000;}
     .li-txt{flex:1;font-size:0.82rem;}
     .li-txt.done{text-decoration:line-through;color:var(--text2);}
-
-    /* HISTORY */
     .hist-card{background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:8px;border-left:3px solid #b8f59a33;}
     .hist-date{font-size:0.58rem;color:var(--text2);margin-bottom:4px;}
     .hist-win{font-size:0.85rem;font-weight:700;color:var(--accent);}
     .hist-meta{font-size:0.65rem;color:var(--text2);margin-top:2px;}
 
-    /* SCAN */
-    .scan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-    .scan-opt{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s;color:var(--text);font-family:var(--mono);}
-    .scan-opt.sel{border-color:var(--accent);background:#b8f59a0a;}
-    .so-icon{font-size:30px;}
-    .so-title{font-size:0.72rem;font-weight:700;}
-    .so-sub{font-size:0.58rem;color:var(--text2);text-align:center;line-height:1.4;}
-    #camArea,#photoArea{display:none;margin-bottom:12px;}
-    #camArea.on,#photoArea.on{display:block;}
-    .cam-wrap{width:100%;border-radius:var(--r);overflow:hidden;background:#000;position:relative;}
+    /* ── SCAN PAGE ── */
+    .scan-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+    .scan-mode-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:all 0.2s;color:var(--text);font-family:var(--mono);}
+    .scan-mode-btn.sel{border-color:var(--accent);background:#b8f59a0a;}
+    .smb-icon{font-size:30px;}
+    .smb-title{font-size:0.74rem;font-weight:700;}
+    .smb-sub{font-size:0.58rem;color:var(--text2);text-align:center;line-height:1.4;}
+
+    /* camera */
+    #camSection{display:none;}#camSection.on{display:block;}
+    .cam-box{width:100%;border-radius:var(--r);background:#000;position:relative;overflow:hidden;min-height:200px;margin-bottom:8px;}
     #scanVid{width:100%;display:block;border-radius:var(--r);}
-    .scan-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-    .scan-fr{width:72%;aspect-ratio:3/1;border:2px solid var(--accent);border-radius:8px;box-shadow:0 0 0 9999px #00000065;position:relative;}
-    .scan-ln{position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);animation:scanAnim 2s ease-in-out infinite;}
+    .cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+    .cam-frame{width:75%;aspect-ratio:3/1;border:2px solid var(--accent);border-radius:8px;box-shadow:0 0 0 9999px #00000065;position:relative;}
+    .cam-line{position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);animation:scanAnim 2s ease-in-out infinite;}
     @keyframes scanAnim{0%,100%{top:0}50%{top:calc(100% - 2px)}}
-    .scan-status{text-align:center;font-size:0.7rem;color:var(--text2);padding:6px 0;}
-    .photo-drop{width:100%;border-radius:var(--r);background:var(--surface2);min-height:155px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;margin-bottom:10px;border:1.5px dashed var(--border);}
-    .photo-drop img{width:100%;border-radius:var(--r);display:none;}
-    .ph-holder{text-align:center;color:var(--text2);}
-    .ph-holder .phi{font-size:34px;margin-bottom:5px;}
-    .ph-holder p{font-size:0.7rem;line-height:1.5;}
-    .man-row{display:flex;gap:7px;margin-bottom:10px;}
-    .man-row input{flex:1;}
+    .cam-tip{color:#fff;font-size:0.65rem;margin-top:14px;background:#00000080;padding:4px 10px;border-radius:10px;}
+    .scan-status-bar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:8px;font-size:0.75rem;background:var(--surface2);}
+    .scan-status-bar.ok{background:#b8f59a18;color:var(--accent);}
+    .scan-status-bar.err{background:#ff7c7c18;color:var(--warn);}
+
+    /* manual entry */
+    #manSection{display:none;}#manSection.on{display:block;}
+    .input-with-btn{display:flex;gap:7px;margin-bottom:10px;}
+    .input-with-btn input{flex:1;}
+    .input-with-btn button{flex-shrink:0;width:auto;padding:10px 14px;}
 
     /* location */
-    .loc-bar{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--border);}
-    .loc-icon{font-size:18px;flex-shrink:0;}
-    .loc-text{flex:1;font-size:0.72rem;color:var(--text2);line-height:1.4;}
+    .loc-bar{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:10px;padding:9px 12px;margin-bottom:10px;border:1px solid var(--border);}
+    .loc-icon{font-size:17px;flex-shrink:0;}
+    .loc-text{flex:1;font-size:0.7rem;color:var(--text2);line-height:1.4;}
     .loc-text.found{color:var(--teal);}
-    .loc-btn{background:var(--surface);border:1px solid var(--border);color:var(--accent2);font-family:var(--mono);font-size:0.62rem;padding:5px 10px;border-radius:8px;cursor:pointer;flex-shrink:0;}
-    .country-row{display:flex;gap:8px;margin-bottom:12px;}
-    .country-row select{flex:1;}
+    .loc-btn{background:var(--surface);border:1px solid var(--border);color:var(--accent2);font-family:var(--mono);font-size:0.62rem;padding:5px 9px;border-radius:8px;cursor:pointer;flex-shrink:0;}
 
-    /* scan result */
-    #scanResult{display:none;}
-    #scanResult.on{display:block;}
-    .rp-name{font-family:var(--disp);font-size:1.1rem;font-weight:800;margin-bottom:2px;}
-    .rp-brand{font-size:0.7rem;color:var(--text2);margin-bottom:12px;}
-    .audience-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
-    .aud-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:0.6rem;font-weight:700;}
-    .aud-veg{background:#b8f59a18;color:var(--accent);border:1px solid #b8f59a44;}
-    .aud-travel{background:#5ef0d818;color:var(--teal);border:1px solid #5ef0d844;}
-    .aud-med{background:#9b8cff18;color:var(--accent2);border:1px solid #9b8cff44;}
-    .aud-food{background:#ffd16618;color:var(--gold);border:1px solid #ffd16644;}
-    .info-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
-    .info-row:last-child{border-bottom:none;}
-    .ir-icon{font-size:20px;flex-shrink:0;width:26px;text-align:center;margin-top:1px;}
-    .ir-label{font-size:0.5rem;letter-spacing:0.13em;text-transform:uppercase;color:var(--text2);margin-bottom:2px;}
-    .ir-val{font-size:0.78rem;line-height:1.5;}
-    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:0.6rem;font-weight:700;margin:2px 2px 2px 0;}
-    .b-green{background:#b8f59a18;color:var(--accent);border:1px solid #b8f59a44;}
-    .b-red{background:#ff7c7c18;color:var(--warn);border:1px solid #ff7c7c44;}
-    .b-yellow{background:#ffd16618;color:var(--gold);border:1px solid #ffd16644;}
-    .b-grey{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+    /* product result card */
+    #productCard{display:none;}#productCard.on{display:block;}
+    .pc-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+    .pc-img{width:72px;height:72px;border-radius:10px;object-fit:contain;background:var(--surface2);flex-shrink:0;border:1px solid var(--border);}
+    .pc-img-placeholder{width:72px;height:72px;border-radius:10px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px;border:1px solid var(--border);}
+    .pc-name{font-family:var(--disp);font-size:1.05rem;font-weight:800;line-height:1.3;margin-bottom:3px;}
+    .pc-brand{font-size:0.68rem;color:var(--text2);margin-bottom:5px;}
+    .pc-barcode{font-family:var(--mono);font-size:0.62rem;color:var(--text2);letter-spacing:0.06em;}
+    .info-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;}
+    .ipill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;}
+    .ip-green{background:#b8f59a18;color:var(--accent);border:1px solid #b8f59a44;}
+    .ip-red{background:#ff7c7c18;color:var(--warn);border:1px solid #ff7c7c44;}
+    .ip-yellow{background:#ffd16618;color:var(--gold);border:1px solid #ffd16644;}
+    .ip-grey{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+    .ip-teal{background:#5ef0d818;color:var(--teal);border:1px solid #5ef0d844;}
+    .ip-purple{background:#9b8cff18;color:var(--accent2);border:1px solid #9b8cff44;}
+    .detail-row{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);}
+    .detail-row:last-child{border-bottom:none;}
+    .dr-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center;}
+    .dr-label{font-size:0.5rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:2px;}
+    .dr-val{font-size:0.76rem;line-height:1.5;}
+    .ing-scroll{max-height:70px;overflow-y:auto;font-size:0.68rem;color:var(--text2);line-height:1.6;}
 
-    /* halal portals section */
-    .halal-section{margin-top:14px;}
-    .halal-title{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-    .halal-title::after{content:'';flex:1;height:1px;background:var(--border);}
-    .halal-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
-    .halal-a{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:0.7rem;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color 0.2s;}
-    .halal-a:hover{border-color:#b8f59a55;}
-    .halal-a .hl{font-size:15px;}
-    .halal-a.jakim{border-color:#00a65020;}
-    .halal-a.intl{border-color:#5ef0d820;}
-
-    /* AI section */
-    .ai-block{margin-top:10px;}
-    .ai-lbl{font-size:0.6rem;color:var(--text2);text-align:center;margin-bottom:8px;}
-    .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
-    .ai-a{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:0.7rem;font-weight:600;cursor:pointer;text-decoration:none;}
-    .ai-a .ail{font-size:15px;}
+    /* search links */
+    .search-section{margin-top:16px;}
+    .search-section-title{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .search-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+    .search-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+    .srch-a{display:flex;align-items:center;gap:7px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:0.72rem;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color 0.2s;}
+    .srch-a:active{transform:scale(0.97);}
+    .srch-a.google{border-color:#4285f430;}
+    .srch-a.gpt{border-color:#10a37f30;}
+    .srch-a.copilot{border-color:#0078d430;}
+    .srch-a.gemini{border-color:#8ab4f830;}
+    .srch-a.claude{border-color:#cc785c30;}
+    .srch-a .sl{font-size:16px;}
+    .srch-a-full{width:100%;justify-content:center;margin-bottom:7px;}
+    .not-found-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;}
+    .nf-icon{font-size:36px;margin-bottom:8px;}
+    .nf-msg{font-size:0.78rem;color:var(--text2);margin-bottom:12px;line-height:1.5;}
 
     /* SURVEY */
     .sv-capture{background:var(--surface);border:1.5px dashed var(--border);border-radius:var(--r);min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;margin-bottom:12px;overflow:hidden;}
@@ -236,31 +217,26 @@
     .sg-date{font-size:0.56rem;color:var(--text2);margin-bottom:5px;}
     .sg-actions{display:flex;gap:4px;}
     .sg-btn{flex:1;background:var(--surface2);border:none;color:var(--text2);font-family:var(--mono);font-size:0.58rem;padding:5px 4px;border-radius:6px;cursor:pointer;}
-
-    /* LOADER */
     .loader{display:none;flex-direction:column;align-items:center;gap:10px;padding:28px 0;}
     .loader.on{display:flex;}
     .spin{width:34px;height:34px;border:3px solid var(--surface2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.75s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
     .spin-txt{font-size:0.7rem;color:var(--text2);}
-
     ::-webkit-scrollbar{width:3px;}
     ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
   </style>
 </head>
 <body>
-
 <div id="splash">
   <div class="sp-icon">🛒</div>
   <div class="sp-title" id="spTitle">Jimat</div>
   <div class="sp-sub" id="spSub">Beli Bijak · Jimat Lebih</div>
   <div class="sp-bar"><div class="sp-prog"></div></div>
 </div>
-
 <div id="app">
   <div class="pages">
 
-    <!-- ══ COMPARE ══ -->
+    <!-- COMPARE -->
     <div class="page active" id="pg-compare">
       <div class="topbar">
         <div><div class="tag" id="t-tag">Supermarket Tool</div><h1 id="t-h1">Price Compare</h1></div>
@@ -273,47 +249,34 @@
         </div>
       </div>
       <p style="font-size:0.68rem;color:var(--text2);margin-bottom:12px;" id="t-sub">Find the best value per unit</p>
-
-      <!-- Currency panel -->
       <div id="currPanel">
         <div class="curr-row">
           <select id="currFrom" onchange="onCurrChange()">
-            <option value="MYR">🇲🇾 MYR</option><option value="USD">🇺🇸 USD</option>
-            <option value="SGD">🇸🇬 SGD</option><option value="THB">🇹🇭 THB</option>
-            <option value="IDR">🇮🇩 IDR</option><option value="AED">🇦🇪 AED</option>
-            <option value="SAR">🇸🇦 SAR</option><option value="JPY">🇯🇵 JPY</option>
-            <option value="CNY">🇨🇳 CNY</option><option value="EUR">🇪🇺 EUR</option>
-            <option value="GBP">🇬🇧 GBP</option><option value="AUD">🇦🇺 AUD</option>
+            <option value="MYR">🇲🇾 MYR</option><option value="USD">🇺🇸 USD</option><option value="SGD">🇸🇬 SGD</option>
+            <option value="THB">🇹🇭 THB</option><option value="IDR">🇮🇩 IDR</option><option value="AED">🇦🇪 AED</option>
+            <option value="SAR">🇸🇦 SAR</option><option value="JPY">🇯🇵 JPY</option><option value="CNY">🇨🇳 CNY</option>
+            <option value="EUR">🇪🇺 EUR</option><option value="GBP">🇬🇧 GBP</option><option value="AUD">🇦🇺 AUD</option>
             <option value="KRW">🇰🇷 KRW</option><option value="INR">🇮🇳 INR</option>
-            <option value="BDT">🇧🇩 BDT</option><option value="PKR">🇵🇰 PKR</option>
           </select>
           <button class="curr-swap" onclick="swapCurr()">⇄</button>
           <select id="currTo" onchange="onCurrChange()">
-            <option value="USD">🇺🇸 USD</option><option value="MYR">🇲🇾 MYR</option>
-            <option value="SGD">🇸🇬 SGD</option><option value="THB">🇹🇭 THB</option>
-            <option value="IDR">🇮🇩 IDR</option><option value="AED">🇦🇪 AED</option>
-            <option value="SAR">🇸🇦 SAR</option><option value="JPY">🇯🇵 JPY</option>
-            <option value="CNY">🇨🇳 CNY</option><option value="EUR">🇪🇺 EUR</option>
-            <option value="GBP">🇬🇧 GBP</option><option value="AUD">🇦🇺 AUD</option>
+            <option value="USD">🇺🇸 USD</option><option value="MYR">🇲🇾 MYR</option><option value="SGD">🇸🇬 SGD</option>
+            <option value="THB">🇹🇭 THB</option><option value="IDR">🇮🇩 IDR</option><option value="AED">🇦🇪 AED</option>
+            <option value="SAR">🇸🇦 SAR</option><option value="JPY">🇯🇵 JPY</option><option value="CNY">🇨🇳 CNY</option>
+            <option value="EUR">🇪🇺 EUR</option><option value="GBP">🇬🇧 GBP</option><option value="AUD">🇦🇺 AUD</option>
             <option value="KRW">🇰🇷 KRW</option><option value="INR">🇮🇳 INR</option>
-            <option value="BDT">🇧🇩 BDT</option><option value="PKR">🇵🇰 PKR</option>
           </select>
         </div>
         <div class="curr-amount-row"><input type="number" id="currAmt" value="1" min="0" step="any" oninput="calcCurr()"></div>
         <div class="curr-result">
-          <div>
-            <div class="curr-result-val" id="currResult">—</div>
-            <div class="curr-result-rate" id="currRate">Fetching rate...</div>
-          </div>
+          <div><div class="curr-result-val" id="currResult">—</div><div class="curr-result-rate" id="currRate">Fetching rate...</div></div>
           <button class="curr-apply" onclick="applyCurr()" id="t-currApply">Use this currency</button>
         </div>
       </div>
-
       <span class="sec-lbl" id="t-storesLbl">Stores to compare — swipe →</span>
       <div class="compare-scroll-wrap" id="compareScrollWrap">
         <div class="compare-scroll-inner" id="itemsInner"></div>
       </div>
-
       <div style="margin-top:12px;display:flex;flex-direction:column;gap:7px;">
         <button class="btn btn-primary" onclick="comparePrices()" id="t-compare">🔍 Compare Prices</button>
         <button class="btn btn-ghost" onclick="clearItems()" id="t-clear">Clear All</button>
@@ -321,7 +284,7 @@
       <div id="verdict" style="margin-top:14px;"></div>
     </div>
 
-    <!-- ══ LIST ══ -->
+    <!-- LIST -->
     <div class="page" id="pg-list">
       <div class="topbar"><h1 id="t-listH">🛒 Shopping List</h1></div>
       <div class="list-add-row">
@@ -332,125 +295,140 @@
       <div class="empty-state" id="liEmpty"><div class="ei">🛍️</div><p id="t-liEmpty">Your list is empty.<br>Add items above!</p></div>
     </div>
 
-    <!-- ══ HISTORY ══ -->
+    <!-- HISTORY -->
     <div class="page" id="pg-history">
       <div class="topbar"><h1 id="t-histH">📋 History</h1></div>
       <div id="histList"></div>
       <div class="empty-state" id="histEmpty"><div class="ei">📭</div><p id="t-histEmpty">No history yet.<br>Compare some prices first!</p></div>
     </div>
 
-    <!-- ══ SCAN ══ -->
+    <!-- SCAN -->
     <div class="page" id="pg-scan">
       <div class="topbar"><h1 id="t-scanH">🔬 Scan & Check</h1></div>
-      <p style="font-size:0.68rem;color:var(--text2);margin-bottom:12px;" id="t-scanSub">Scan barcode or photo the product label</p>
+      <p style="font-size:0.68rem;color:var(--text2);margin-bottom:14px;" id="t-scanSub">Scan a barcode or search by product name</p>
 
+      <!-- Location -->
       <div class="loc-bar">
         <div class="loc-icon">📍</div>
-        <div class="loc-text" id="locText">Location improves Halal &amp; safety search accuracy</div>
-        <button class="loc-btn" onclick="detectLocation()" id="locBtn">Detect</button>
+        <div class="loc-text" id="locText">Add location for better Halal search results</div>
+        <button class="loc-btn" onclick="detectLoc()" id="locBtn">Detect</button>
       </div>
-      <div class="country-row">
-        <select id="countrySelect" onchange="onCountryChange(this.value)">
-          <option value="">🌍 Select country manually...</option>
+      <div style="margin-bottom:12px;">
+        <select id="countrySelect" onchange="onCountryPick(this.value)">
+          <option value="">🌍 Or select country...</option>
           <option value="Malaysia">🇲🇾 Malaysia</option><option value="Singapore">🇸🇬 Singapore</option>
           <option value="Indonesia">🇮🇩 Indonesia</option><option value="Thailand">🇹🇭 Thailand</option>
           <option value="Japan">🇯🇵 Japan</option><option value="South Korea">🇰🇷 South Korea</option>
           <option value="China">🇨🇳 China</option><option value="India">🇮🇳 India</option>
-          <option value="United Arab Emirates">🇦🇪 UAE</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+          <option value="UAE">🇦🇪 UAE</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
           <option value="United Kingdom">🇬🇧 United Kingdom</option><option value="Australia">🇦🇺 Australia</option>
-          <option value="United States">🇺🇸 United States</option><option value="France">🇫🇷 France</option>
-          <option value="Germany">🇩🇪 Germany</option><option value="Turkey">🇹🇷 Turkey</option>
+          <option value="United States">🇺🇸 United States</option><option value="Turkey">🇹🇷 Turkey</option>
           <option value="Bangladesh">🇧🇩 Bangladesh</option><option value="Pakistan">🇵🇰 Pakistan</option>
         </select>
       </div>
 
-      <div class="scan-grid">
-        <button class="scan-opt" id="so-barcode" onclick="selScan('barcode')">
-          <span class="so-icon">📷</span>
-          <span class="so-title" id="t-soBarcode">Scan Barcode</span>
-          <span class="so-sub" id="t-soBsub">Point camera at barcode</span>
+      <!-- Mode buttons -->
+      <div class="scan-modes">
+        <button class="scan-mode-btn" id="mb-cam" onclick="setMode('cam')">
+          <span class="smb-icon">📷</span>
+          <span class="smb-title" id="t-mCam">Scan Barcode</span>
+          <span class="smb-sub" id="t-mCamSub">Point camera at barcode — auto detects</span>
         </button>
-        <button class="scan-opt" id="so-photo" onclick="selScan('photo')">
-          <span class="so-icon">🖼️</span>
-          <span class="so-title" id="t-soPhoto">Photo / Name</span>
-          <span class="so-sub" id="t-soPsub">Photo or type product name</span>
+        <button class="scan-mode-btn" id="mb-man" onclick="setMode('man')">
+          <span class="smb-icon">⌨️</span>
+          <span class="smb-title" id="t-mMan">Type / Search</span>
+          <span class="smb-sub" id="t-mManSub">Enter barcode number or product name</span>
         </button>
       </div>
 
-      <!-- BARCODE CAM -->
-      <div id="camArea">
-        <div class="cam-wrap">
+      <!-- Camera section -->
+      <div id="camSection">
+        <div class="cam-box">
           <video id="scanVid" autoplay playsinline muted></video>
-          <div class="scan-ov"><div class="scan-fr"><div class="scan-ln"></div></div></div>
+          <div class="cam-overlay">
+            <div class="cam-frame"><div class="cam-line"></div></div>
+            <div class="cam-tip" id="t-camTip">Align barcode in frame</div>
+          </div>
         </div>
-        <div class="scan-status" id="scanStatus">📷 Align barcode within the frame</div>
-        <button class="btn btn-secondary" onclick="stopCam()" style="margin-top:6px;" id="t-stopCam">⏹ Stop Camera</button>
-        <span class="sec-lbl" style="margin-top:10px;" id="t-manualLbl">Or type barcode number:</span>
-        <div class="man-row">
-          <input type="text" id="manBC" placeholder="e.g. 9556032123456" inputmode="numeric">
-          <button class="btn btn-primary" style="width:auto;padding:9px 13px;" onclick="lookupBC(document.getElementById('manBC').value)">🔍</button>
+        <div class="scan-status-bar" id="scanStatusBar">
+          <span id="scanStatusTxt">🔍 Scanning...</span>
+        </div>
+        <button class="btn btn-secondary" onclick="stopCam()" id="t-stopCam">⏹ Stop Camera</button>
+      </div>
+
+      <!-- Manual / Name section -->
+      <div id="manSection">
+        <span class="sec-lbl" id="t-barcodeLabel">Barcode number:</span>
+        <div class="input-with-btn" style="margin-bottom:12px;">
+          <input type="text" id="manBC" inputmode="numeric" placeholder="e.g. 9556032123456">
+          <button class="btn btn-primary input-with-btn" onclick="doLookupBC()" id="t-searchBC">🔍</button>
+        </div>
+        <span class="sec-lbl" id="t-nameLabel">Or product name:</span>
+        <div class="input-with-btn">
+          <input type="text" id="manName" placeholder="e.g. Milo 1kg">
+          <button class="btn btn-primary input-with-btn" onclick="doLookupName()" id="t-searchName">🔍</button>
         </div>
       </div>
 
-      <!-- PHOTO / NAME -->
-      <div id="photoArea">
-        <div class="photo-drop" onclick="document.getElementById('photoFile').click()">
-          <div class="ph-holder" id="phHolder"><div class="phi">📸</div><p id="t-phTap">Tap to take photo<br>or pick from gallery</p></div>
-          <img id="phPreview" alt="">
-        </div>
-        <input type="file" id="photoFile" accept="image/*" capture="environment" onchange="onScanPhoto(event)" style="display:none;">
-        <button class="btn btn-primary" onclick="document.getElementById('photoFile').click()" id="t-takePh">📸 Take / Choose Photo</button>
-        <span class="sec-lbl" style="margin-top:10px;" id="t-orName">Or enter product name:</span>
-        <div class="man-row">
-          <input type="text" id="phName" placeholder="e.g. Milo 1kg">
-          <button class="btn btn-primary" style="width:auto;padding:9px 13px;" onclick="lookupName()">🔍</button>
-        </div>
-      </div>
+      <!-- Loader -->
+      <div class="loader" id="scanLoader"><div class="spin"></div><div class="spin-txt" id="t-checking">Checking product...</div></div>
 
-      <div class="loader" id="scanLoader"><div class="spin"></div><div class="spin-txt" id="t-loading">Checking product...</div></div>
-
-      <div id="scanResult">
+      <!-- Product card -->
+      <div id="productCard">
         <div class="card">
-          <div class="rp-name" id="rpName"></div>
-          <div class="rp-brand" id="rpBrand"></div>
-          <div class="audience-row" id="audienceRow"></div>
-          <div class="info-row"><div class="ir-icon">☪️</div><div><div class="ir-label" id="t-halalLbl">Halal Status</div><div class="ir-val" id="rpHalal"></div></div></div>
-          <div class="info-row"><div class="ir-icon">🌍</div><div><div class="ir-label" id="t-originLbl">Country of Origin</div><div class="ir-val" id="rpOrigin"></div></div></div>
-          <div class="info-row"><div class="ir-icon">🧪</div><div><div class="ir-label" id="t-ingLbl">Ingredients</div><div class="ir-val" id="rpIng" style="font-size:0.7rem;color:var(--text2);line-height:1.55;max-height:80px;overflow-y:auto;"></div></div></div>
-          <div class="info-row"><div class="ir-icon">🚨</div><div><div class="ir-label" id="t-allerLbl">Allergens</div><div class="ir-val" id="rpAllergens"></div></div></div>
-          <div class="info-row"><div class="ir-icon">⚠️</div><div><div class="ir-label" id="t-warnLbl">Warnings / Dangers</div><div class="ir-val" id="rpWarn"></div></div></div>
+          <div class="pc-header">
+            <div id="pcImgWrap"></div>
+            <div>
+              <div class="pc-name" id="pcName"></div>
+              <div class="pc-brand" id="pcBrand"></div>
+              <div class="pc-barcode" id="pcBarcode"></div>
+            </div>
+          </div>
+          <div class="info-pills" id="infoPills"></div>
+          <div class="detail-row"><div class="dr-icon">🌍</div><div><div class="dr-label" id="t-origin">Country of Origin</div><div class="dr-val" id="pcOrigin"></div></div></div>
+          <div class="detail-row"><div class="dr-icon">🧪</div><div><div class="dr-label" id="t-ingLbl">Ingredients</div><div class="ing-scroll" id="pcIng"></div></div></div>
+          <div class="detail-row"><div class="dr-icon">🚨</div><div><div class="dr-label" id="t-allerLbl">Allergens</div><div class="dr-val" id="pcAllergens"></div></div></div>
         </div>
 
-        <!-- HALAL PORTALS -->
-        <div class="halal-section">
-          <div class="halal-title">☪️ Verify Halal</div>
-          <div class="halal-grid">
-            <a class="halal-a jakim" id="hJakim" target="_blank"><span class="hl">🇲🇾</span>JAKIM Portal</a>
-            <a class="halal-a jakim" id="hMye" target="_blank"><span class="hl">📋</span>MYeHalal Dir.</a>
-            <a class="halal-a intl" id="hVerify" target="_blank"><span class="hl">✅</span>VerifyHalal</a>
-            <a class="halal-a intl" id="hFinder" target="_blank"><span class="hl">🔍</span>HalalFinder</a>
+        <!-- Search links — auto-fired after scan -->
+        <div class="search-section">
+          <div class="search-section-title" id="t-searchTitle">Search for Halal status &amp; safety info</div>
+          <div class="search-grid">
+            <a class="srch-a google" id="sGoogle" target="_blank"><span class="sl">🔍</span>Google</a>
+            <a class="srch-a gpt" id="sGPT" target="_blank"><span class="sl">🤖</span>ChatGPT</a>
+            <a class="srch-a copilot" id="sCopilot" target="_blank"><span class="sl">🪟</span>Copilot</a>
+            <a class="srch-a gemini" id="sGemini" target="_blank"><span class="sl">✨</span>Gemini</a>
           </div>
-          <a class="halal-a intl" id="hMuis" target="_blank" style="width:100%;justify-content:center;margin-bottom:6px;"><span class="hl">🌐</span>MUIS (Singapore) — International</a>
-          <a class="halal-a intl" id="hOiic" target="_blank" style="width:100%;justify-content:center;"><span class="hl">🌍</span>OIC Halal — International Bodies</a>
-        </div>
-
-        <!-- AI FALLBACK -->
-        <div class="ai-block">
-          <div class="ai-lbl" id="t-aiMore">More info? Ask AI:</div>
-          <div class="ai-grid">
-            <a class="ai-a" id="aiGoogle" target="_blank"><span class="ail">🔍</span>Google</a>
-            <a class="ai-a" id="aiGPT" target="_blank"><span class="ail">🤖</span>ChatGPT</a>
-            <a class="ai-a" id="aiCopilot" target="_blank"><span class="ail">🪟</span>Copilot</a>
-            <a class="ai-a" id="aiGemini" target="_blank"><span class="ail">✨</span>Gemini</a>
-          </div>
-          <a class="ai-a" id="aiClaude" target="_blank" style="width:100%;justify-content:center;"><span class="ail">🧠</span>Claude AI</a>
+          <a class="srch-a claude srch-a-full" id="sClaude" target="_blank"><span class="sl">🧠</span>Claude AI</a>
+          <!-- Open Food Facts deep link -->
+          <a class="srch-a srch-a-full" id="sOFF" target="_blank" style="border-color:#e87d2b40;justify-content:center;"><span class="sl">🍎</span>Open Food Facts — full product data</a>
         </div>
         <button class="btn btn-secondary" onclick="resetScan()" style="margin-top:12px;" id="t-scanAgain">🔄 Scan Again</button>
       </div>
-      <div class="empty-state" id="scanEmpty"><div class="ei">🔬</div><p id="t-scanEmpty">Choose a scan method above<br>to check your product</p></div>
+
+      <!-- Not found card -->
+      <div id="notFoundCard" style="display:none;">
+        <div class="not-found-box">
+          <div class="nf-icon">🔍</div>
+          <div class="nf-msg" id="nfMsg">Product not found in Open Food Facts database. Use the search links below to find more information.</div>
+        </div>
+        <div class="search-section" style="margin-top:12px;">
+          <div class="search-section-title" id="t-searchTitle2">Search Halal status &amp; product info</div>
+          <div class="search-grid">
+            <a class="srch-a google" id="sGoogle2" target="_blank"><span class="sl">🔍</span>Google</a>
+            <a class="srch-a gpt" id="sGPT2" target="_blank"><span class="sl">🤖</span>ChatGPT</a>
+            <a class="srch-a copilot" id="sCopilot2" target="_blank"><span class="sl">🪟</span>Copilot</a>
+            <a class="srch-a gemini" id="sGemini2" target="_blank"><span class="sl">✨</span>Gemini</a>
+          </div>
+          <a class="srch-a claude srch-a-full" id="sClaude2" target="_blank"><span class="sl">🧠</span>Claude AI</a>
+        </div>
+        <button class="btn btn-secondary" onclick="resetScan()" style="margin-top:12px;" id="t-scanAgain2">🔄 Try Again</button>
+      </div>
+
+      <div class="empty-state" id="scanEmpty"><div class="ei">🔬</div><p id="t-scanEmpty">Choose Scan Barcode or Type / Search above</p></div>
     </div>
 
-    <!-- ══ SURVEY ══ -->
+    <!-- SURVEY -->
     <div class="page" id="pg-survey">
       <div class="topbar"><h1 id="t-svH">📷 Survey</h1></div>
       <p style="font-size:0.68rem;color:var(--text2);margin-bottom:12px;" id="t-svSub">Photo price tags &amp; save to device</p>
@@ -479,7 +457,6 @@
     </div>
 
   </div>
-
   <nav>
     <button class="nb active" onclick="showPg('compare',this)"><span class="ni">🔍</span><span id="nl-compare">Compare</span></button>
     <button class="nb" onclick="showPg('list',this)"><span class="ni">🛒</span><span id="nl-list">List</span></button>
@@ -488,7 +465,6 @@
     <button class="nb" onclick="showPg('survey',this)"><span class="ni">📷</span><span id="nl-survey">Survey</span></button>
   </nav>
 </div>
-
 <script>
 // ═══ LANGUAGE ═══
 let lang='en';
@@ -498,39 +474,35 @@ const TX={
     tag:'Supermarket Tool',h1:'Price Compare',sub:'Find the best value per unit',
     storesLbl:'Stores to compare — swipe →',compare:'🔍 Compare Prices',clear:'Clear All',currApply:'Use this currency',
     listH:'🛒 Shopping List',liEmpty:'Your list is empty.<br>Add items above!',
-    histH:'📋 History',histEmpty:'No history yet.<br>Compare some prices first!',
-    scanH:'🔬 Scan & Check',scanSub:'Scan barcode or photo the product label',
-    soBarcode:'Scan Barcode',soBsub:'Point camera at barcode',
-    soPhoto:'Photo / Name',soPsub:'Photo or type product name',
-    stopCam:'⏹ Stop Camera',manualLbl:'Or type barcode number:',
-    phTap:'Tap to take photo<br>or pick from gallery',
-    takePh:'📸 Take / Choose Photo',orName:'Or enter product name:',
-    loading:'Checking product...',
-    halalLbl:'Halal Status',originLbl:'Country of Origin',
-    ingLbl:'Ingredients',allerLbl:'Allergens',warnLbl:'Warnings / Dangers',
-    aiMore:'More info? Ask AI:',
-    scanAgain:'🔄 Scan Again',scanEmpty:'Choose a scan method above<br>to check your product',
+    histH:'📋 History',histEmpty:'No history yet.<br>Compare prices first!',
+    scanH:'🔬 Scan & Check',scanSub:'Scan a barcode or search by product name',
+    mCam:'Scan Barcode',mCamSub:'Point camera at barcode — auto detects',
+    mMan:'Type / Search',mManSub:'Enter barcode number or product name',
+    camTip:'Align barcode in frame',stopCam:'⏹ Stop Camera',
+    barcodeLabel:'Barcode number:',nameLabel:'Or product name:',
+    searchBC:'🔍',searchName:'🔍',
+    checking:'Checking product...',
+    origin:'Country of Origin',ingLbl:'Ingredients',allerLbl:'Allergens',
+    searchTitle:'Search for Halal status & safety info',
+    searchTitle2:'Search Halal status & product info',
+    scanAgain:'🔄 Scan Again',scanAgain2:'🔄 Try Again',
+    scanEmpty:'Choose Scan Barcode or Type / Search above',
     svH:'📷 Survey',svSub:'Photo price tags & save to device',
     svTap:'Tap to take photo of price tag',
     svStoreLbl:'Store Name',svNoteLbl:'Note / Item',svSave:'💾 Save Photo',
-    svGallery:'Saved Photos',svClear:'Clear All',
-    sgEmpty:'No photos saved yet.<br>Take a photo above!',
+    svGallery:'Saved Photos',svClear:'Clear All',sgEmpty:'No photos saved yet.<br>Take a photo above!',
     svShareBtn:'📤 Share',svDeleteBtn:'🗑️ Delete',
     nlCompare:'Compare',nlList:'List',nlHistory:'History',nlScan:'Scan',nlSurvey:'Survey',
-    namePh:'e.g. Milo 1kg',
-    fieldName:'Name',fieldPrice:'Price',fieldSize:'Size / Qty',fieldStore:'Store',fieldDisc:'Discount %',
+    namePh:'e.g. Milo 1kg',fieldName:'Name',fieldPrice:'Price',fieldSize:'Size / Qty',
+    fieldStore:'Store',fieldDisc:'Discount %',storeSel:'— select store —',
     verdictLabel:'Best Value',savePct:'Save',saveAmt:'Save',
-    halalYes:'✅ Halal',halalNo:'❌ Not Halal',halalUnk:'❓ Unknown',
-    originUnk:'Unknown',ingNone:'No information',
-    allerNone:'No allergens detected',warnNone:'No warnings',
-    notFound:'Not found in database. Use links below to verify Halal status.',
-    aiPrompt:'Is [P] halal[LOC]? Is it vegetarian/vegan? What are the dangers? Country of origin?',
     stores:'stores',addListPh:'Add item...',per100:'per 100',
-    locDetect:'Detecting location...',locFound:'📍 [LOC] detected',locFail:'Location unavailable — select manually',
-    storeSel:'— select store —',
-    scanStatusReady:'📷 Align barcode within the frame',
-    scanStatusFound:'✅ Barcode detected!',
-    scanStatusTrying:'🔍 Scanning...',
+    locDetect:'Detecting location...',locFound:'📍 [L] detected',locFail:'Location unavailable — select manually',
+    notFoundMsg:'Product not found in database. Use search links below.',
+    aiPrompt:'Is [P] halal[L]? Is it safe? Country of origin? Vegetarian?',
+    halalYes:'✅ Halal',halalNo:'❌ Not Halal',halalUnk:'❓ Halal Unknown',
+    allerNone:'None detected',warnNone:'No warnings',originUnk:'Unknown',ingNone:'Not available',
+    scanStatus:'🔍 Scanning...',scanFound:'✅ Barcode found!',scanErr:'❌ Camera error — try typing barcode',
   },
   my:{
     spTitle:'Jimat',spSub:'Beli Bijak · Jimat Lebih',
@@ -538,48 +510,43 @@ const TX={
     storesLbl:'Kedai untuk dibandingkan — leret →',compare:'🔍 Bandingkan Harga',clear:'Kosongkan',currApply:'Guna mata wang ini',
     listH:'🛒 Senarai Beli',liEmpty:'Senarai kosong.<br>Tambah item di atas!',
     histH:'📋 Sejarah',histEmpty:'Tiada sejarah lagi.<br>Cuba bandingkan harga dulu!',
-    scanH:'🔬 Semak Produk',scanSub:'Imbas barcode atau ambil gambar label produk',
-    soBarcode:'Imbas Barcode',soBsub:'Halakan kamera ke barcode',
-    soPhoto:'Foto / Nama',soPsub:'Foto atau taip nama produk',
-    stopCam:'⏹ Henti Kamera',manualLbl:'Atau taip nombor barcode:',
-    phTap:'Ketik untuk ambil gambar<br>atau pilih dari galeri',
-    takePh:'📸 Ambil / Pilih Gambar',orName:'Atau masukkan nama produk:',
-    loading:'Sedang semak produk...',
-    halalLbl:'Status Halal',originLbl:'Negara Asal',
-    ingLbl:'Bahan-Bahan',allerLbl:'Alergen',warnLbl:'Amaran / Bahaya',
-    aiMore:'Maklumat lanjut? Tanya AI:',
-    scanAgain:'🔄 Imbas Semula',scanEmpty:'Pilih kaedah imbasan di atas<br>untuk semak produk anda',
+    scanH:'🔬 Semak Produk',scanSub:'Imbas barcode atau cari nama produk',
+    mCam:'Imbas Barcode',mCamSub:'Halakan kamera ke barcode — auto kesan',
+    mMan:'Taip / Cari',mManSub:'Masukkan nombor barcode atau nama produk',
+    camTip:'Sejajarkan barcode dalam bingkai',stopCam:'⏹ Henti Kamera',
+    barcodeLabel:'Nombor barcode:',nameLabel:'Atau nama produk:',
+    searchBC:'🔍',searchName:'🔍',
+    checking:'Sedang semak produk...',
+    origin:'Negara Asal',ingLbl:'Bahan-Bahan',allerLbl:'Alergen',
+    searchTitle:'Cari status Halal & maklumat keselamatan',
+    searchTitle2:'Cari status Halal & maklumat produk',
+    scanAgain:'🔄 Imbas Semula',scanAgain2:'🔄 Cuba Lagi',
+    scanEmpty:'Pilih Imbas Barcode atau Taip / Cari di atas',
     svH:'📷 Survei',svSub:'Foto tag harga & simpan ke peranti',
     svTap:'Ketik untuk ambil gambar tag harga',
     svStoreLbl:'Nama Kedai',svNoteLbl:'Nota / Item',svSave:'💾 Simpan Foto',
-    svGallery:'Foto Tersimpan',svClear:'Padam Semua',
-    sgEmpty:'Tiada foto disimpan.<br>Ambil foto di atas!',
+    svGallery:'Foto Tersimpan',svClear:'Padam Semua',sgEmpty:'Tiada foto disimpan.<br>Ambil foto di atas!',
     svShareBtn:'📤 Kongsi',svDeleteBtn:'🗑️ Padam',
     nlCompare:'Bandingkan',nlList:'Senarai',nlHistory:'Sejarah',nlScan:'Semak',nlSurvey:'Survei',
-    namePh:'cth: Milo 1kg',
-    fieldName:'Nama',fieldPrice:'Harga',fieldSize:'Saiz / Kuantiti',fieldStore:'Kedai',fieldDisc:'Diskaun %',
+    namePh:'cth: Milo 1kg',fieldName:'Nama',fieldPrice:'Harga',fieldSize:'Saiz / Kuantiti',
+    fieldStore:'Kedai',fieldDisc:'Diskaun %',storeSel:'— pilih kedai —',
     verdictLabel:'Nilai Terbaik',savePct:'Jimat',saveAmt:'Jimat',
-    halalYes:'✅ Halal',halalNo:'❌ Tidak Halal',halalUnk:'❓ Tidak Diketahui',
-    originUnk:'Tidak diketahui',ingNone:'Tiada maklumat',
-    allerNone:'Tiada alergen dikesan',warnNone:'Tiada amaran',
-    notFound:'Produk tidak dijumpai. Guna pautan di bawah untuk semak status Halal.',
-    aiPrompt:'Adakah [P] halal[LOC]? Sesuai untuk vegetarian? Apakah bahayanya? Negara asal?',
     stores:'kedai',addListPh:'Tambah item...',per100:'setiap 100',
-    locDetect:'Mengesan lokasi...',locFound:'📍 [LOC] dikesan',locFail:'Lokasi tidak tersedia — pilih manual',
-    storeSel:'— pilih kedai —',
-    scanStatusReady:'📷 Halakan barcode dalam bingkai',
-    scanStatusFound:'✅ Barcode dikesan!',
-    scanStatusTrying:'🔍 Mengimbas...',
+    locDetect:'Mengesan lokasi...',locFound:'📍 [L] dikesan',locFail:'Lokasi tidak tersedia — pilih manual',
+    notFoundMsg:'Produk tidak dijumpai dalam pangkalan data. Guna pautan carian di bawah.',
+    aiPrompt:'Adakah [P] halal[L]? Adakah selamat? Negara asal? Sesuai vegetarian?',
+    halalYes:'✅ Halal',halalNo:'❌ Tidak Halal',halalUnk:'❓ Status Halal Tidak Diketahui',
+    allerNone:'Tiada dikesan',warnNone:'Tiada amaran',originUnk:'Tidak diketahui',ingNone:'Tiada maklumat',
+    scanStatus:'🔍 Mengimbas...',scanFound:'✅ Barcode dijumpai!',scanErr:'❌ Ralat kamera — cuba taip barcode',
   }
 };
 function t(k){return TX[lang][k]||k;}
 
 const TK=['tag','h1','sub','storesLbl','compare','clear','currApply',
-  'listH','liEmpty','histH','histEmpty',
-  'scanH','scanSub','soBarcode','soBsub','soPhoto','soPsub',
-  'stopCam','manualLbl','phTap','takePh','orName','loading',
-  'halalLbl','originLbl','ingLbl','allerLbl','warnLbl',
-  'aiMore','scanAgain','scanEmpty',
+  'listH','liEmpty','histH','histEmpty','scanH','scanSub',
+  'mCam','mCamSub','mMan','mManSub','camTip','stopCam',
+  'barcodeLabel','nameLabel','checking','origin','ingLbl','allerLbl',
+  'searchTitle','searchTitle2','scanAgain','scanAgain2','scanEmpty',
   'svH','svSub','svTap','svStoreLbl','svNoteLbl','svSave','svGallery','svClear','sgEmpty'];
 
 function setLang(l){
@@ -596,9 +563,9 @@ function applyLang(){
     if(el)el.textContent=t('nl'+p.charAt(0).toUpperCase()+p.slice(1));
   });
   document.getElementById('liInput').placeholder=t('addListPh');
+  document.getElementById('manName').placeholder=t('namePh');
   document.getElementById('svStore').placeholder=lang==='my'?'cth: Lotus\'s, Giant':'e.g. Lotus\'s, Giant';
   document.getElementById('svNote').placeholder=lang==='my'?'cth: Milo 1kg RM 8.90':'e.g. Milo 1kg RM 8.90';
-  const ss=document.getElementById('scanStatus');if(ss)ss.textContent=t('scanStatusReady');
 }
 
 // ═══ NAV ═══
@@ -611,27 +578,16 @@ function showPg(name,btn){
 }
 
 // ═══ CURRENCY ═══
-const CSYM={MYR:'RM',USD:'$',SGD:'S$',THB:'฿',IDR:'Rp',AED:'د.إ',SAR:'﷼',JPY:'¥',CNY:'¥',EUR:'€',GBP:'£',AUD:'A$',KRW:'₩',INR:'₹',BDT:'৳',PKR:'₨'};
-const OFFLINE={MYR:1,USD:0.213,SGD:0.288,THB:7.52,IDR:3380,AED:0.782,SAR:0.799,JPY:32.1,CNY:1.54,EUR:0.197,GBP:0.168,AUD:0.323,KRW:283,INR:17.7,BDT:23.4,PKR:59.5};
+const CSYM={MYR:'RM',USD:'$',SGD:'S$',THB:'฿',IDR:'Rp',AED:'د.إ',SAR:'﷼',JPY:'¥',CNY:'¥',EUR:'€',GBP:'£',AUD:'A$',KRW:'₩',INR:'₹'};
+const OFFLINE={MYR:1,USD:0.213,SGD:0.288,THB:7.52,IDR:3380,AED:0.782,SAR:0.799,JPY:32.1,CNY:1.54,EUR:0.197,GBP:0.168,AUD:0.323,KRW:283,INR:17.7};
 let currRates={},currBase='MYR',activeSym='RM';
-
-function toggleCurr(){
-  const p=document.getElementById('currPanel');
-  p.classList.toggle('open');
-  if(p.classList.contains('open'))fetchRates();
-}
+function toggleCurr(){const p=document.getElementById('currPanel');p.classList.toggle('open');if(p.classList.contains('open'))fetchRates();}
 async function fetchRates(){
   const from=document.getElementById('currFrom').value;
-  document.getElementById('currRate').textContent=lang==='my'?'Mendapatkan kadar...':'Fetching live rate...';
-  try{
-    const r=await fetch('https://api.frankfurter.app/latest?from='+from);
-    const d=await r.json();currRates=d.rates;currRates[from]=1;currBase=from;calcCurr();
-  }catch(e){
-    document.getElementById('currRate').textContent=lang==='my'?'Tiada internet — kadar anggaran':'No internet — approx. rates';
-    const fb=OFFLINE[from]||1;currRates={};
-    for(const[k,v]of Object.entries(OFFLINE))currRates[k]=v/fb;
-    currBase=from;calcCurr();
-  }
+  document.getElementById('currRate').textContent=lang==='my'?'Mendapatkan kadar...':'Fetching rate...';
+  try{const r=await fetch('https://api.frankfurter.app/latest?from='+from);const d=await r.json();currRates=d.rates;currRates[from]=1;currBase=from;calcCurr();}
+  catch(e){const fb=OFFLINE[from]||1;currRates={};for(const[k,v]of Object.entries(OFFLINE))currRates[k]=v/fb;currBase=from;
+    document.getElementById('currRate').textContent=lang==='my'?'Kadar anggaran':'Approx. rates';calcCurr();}
 }
 function onCurrChange(){const f=document.getElementById('currFrom').value;if(f!==currBase)fetchRates();else calcCurr();}
 function calcCurr(){
@@ -643,155 +599,73 @@ function calcCurr(){
   document.getElementById('currRate').textContent=`1 ${from} = ${sym}${rate>=100?rate.toFixed(2):rate.toFixed(4)} ${to}`;
 }
 function swapCurr(){const f=document.getElementById('currFrom'),t2=document.getElementById('currTo');[f.value,t2.value]=[t2.value,f.value];fetchRates();}
-function applyCurr(){
-  const from=document.getElementById('currFrom').value;
-  activeSym=CSYM[from]||from;
-  document.getElementById('currBtn').textContent=activeSym+' ▾';
-  document.getElementById('currPanel').classList.remove('open');
-  renderItems();
-}
+function applyCurr(){activeSym=CSYM[document.getElementById('currFrom').value]||document.getElementById('currFrom').value;document.getElementById('currBtn').textContent=activeSym+' ▾';document.getElementById('currPanel').classList.remove('open');renderItems();}
 
-// ═══ COMPARE — horizontal scroll + store dropdown + discount ═══
+// ═══ COMPARE ═══
 const UNITS=["g","kg","ml","L","oz","lb","count"];
-const MY_STORES=['Giant','Tesco','Lotus\'s','Mydin','Aeon','Cold Storage','99 Speedmart','Econsave','Jaya Grocer','Village Grocer','Hero Market','Sunshine','Pacific','TF Value-Mart','Other'];
+const MY_STORES=["Giant","Tesco","Lotus's","Mydin","Aeon","Cold Storage","99 Speedmart","Econsave","Jaya Grocer","Village Grocer","Hero Market","Sunshine","Pacific","TF Value-Mart","Other"];
 let items=[];
-
 function toBase(v,u){return u==='kg'?v*1000:u==='L'?v*1000:u==='oz'?v*28.3495:u==='lb'?v*453.592:v;}
 function ppu(price,qty,unit){const b=toBase(qty,unit);if(!b)return null;const m=(unit==='g'||unit==='ml')?100:1;return{value:(price/b)*m,label:`${t('per100')} ${unit}`};}
-
-function addItem(){
-  items.push({name:'',price:'',qty:'',unit:'g',store:'',disc:0});
-  renderItems();
-  setTimeout(()=>{const w=document.getElementById('compareScrollWrap');w.scrollTo({left:w.scrollWidth,behavior:'smooth'});},60);
-}
+function addItem(){items.push({name:'',price:'',qty:'',unit:'g',store:'',disc:0});renderItems();setTimeout(()=>{const w=document.getElementById('compareScrollWrap');w.scrollTo({left:w.scrollWidth,behavior:'smooth'});},60);}
 function clearItems(){items=[];renderItems();document.getElementById('verdict').innerHTML='';}
 function updateItem(i,f,v){if(items[i])items[i][f]=v;}
 function removeItem(i){items.splice(i,1);renderItems();}
-
-function storeOptions(sel){
-  return MY_STORES.map(s=>`<option value="${s}" ${sel===s?'selected':''}>${s}</option>`).join('');
-}
-
+function storeOpts(sel){return MY_STORES.map(s=>`<option value="${s}" ${sel===s?'selected':''}>${s}</option>`).join('');}
 function renderItems(){
   const inner=document.getElementById('itemsInner');inner.innerHTML='';
   items.forEach((item,i)=>{
     const c=document.createElement('div');c.className='item-card';
-    c.innerHTML=`
-      <button class="del-x" onclick="removeItem(${i})">✕</button>
+    c.innerHTML=`<button class="del-x" onclick="removeItem(${i})">✕</button>
       <div class="item-num">${t('fieldName')} ${i+1}</div>
-      <div class="fl">
-        <label class="fl-lbl">${t('fieldStore')}</label>
-        <select class="store-sel" onchange="updateItem(${i},'store',this.value)">
-          <option value="">${t('storeSel')}</option>${storeOptions(item.store)}
-        </select>
-      </div>
-      <div class="fl">
-        <label class="fl-lbl">${t('fieldName')}</label>
-        <input type="text" value="${item.name}" placeholder="${t('namePh')}" oninput="updateItem(${i},'name',this.value)" style="font-size:0.75rem;">
-      </div>
-      <div class="fl">
-        <label class="fl-lbl">${t('fieldPrice')}</label>
-        <div class="fl-row">
-          <span class="csym">${activeSym}</span>
-          <input type="number" min="0" step="0.01" value="${item.price}" placeholder="0.00" oninput="updateItem(${i},'price',this.value)" style="font-size:0.75rem;">
-        </div>
-      </div>
-      <div class="fl">
-        <label class="fl-lbl">${t('fieldSize')}</label>
+      <div class="fl"><label class="fl-lbl">${t('fieldStore')}</label>
+        <select class="store-sel" onchange="updateItem(${i},'store',this.value)"><option value="">${t('storeSel')}</option>${storeOpts(item.store)}</select></div>
+      <div class="fl"><label class="fl-lbl">${t('fieldName')}</label>
+        <input type="text" value="${item.name}" placeholder="${t('namePh')}" oninput="updateItem(${i},'name',this.value)" style="font-size:0.75rem;"></div>
+      <div class="fl"><label class="fl-lbl">${t('fieldPrice')}</label>
+        <div class="fl-row"><span class="csym">${activeSym}</span>
+          <input type="number" min="0" step="0.01" value="${item.price}" placeholder="0.00" oninput="updateItem(${i},'price',this.value)" style="font-size:0.75rem;"></div></div>
+      <div class="fl"><label class="fl-lbl">${t('fieldSize')}</label>
         <div class="urow">
           <input type="number" min="0" value="${item.qty}" placeholder="0" oninput="updateItem(${i},'qty',this.value)" style="font-size:0.75rem;">
           <select onchange="updateItem(${i},'unit',this.value)" style="font-size:0.75rem;">${UNITS.map(u=>`<option value="${u}" ${item.unit===u?'selected':''}>${u}</option>`).join('')}</select>
-        </div>
-      </div>
-      <div class="fl">
-        <label class="fl-lbl">${t('fieldDisc')}</label>
-        <div class="disc-row">
-          <input type="number" min="0" max="100" step="1" value="${item.disc||''}" placeholder="0" oninput="updateItem(${i},'disc',parseFloat(this.value)||0)" style="font-size:0.75rem;">
-          <span class="disc-lbl">%</span>
-        </div>
-      </div>`;
+        </div></div>
+      <div class="fl"><label class="fl-lbl">${t('fieldDisc')}</label>
+        <div class="disc-row"><input type="number" min="0" max="100" value="${item.disc||''}" placeholder="0" oninput="updateItem(${i},'disc',parseFloat(this.value)||0)" style="font-size:0.75rem;"><span class="disc-lbl">%</span></div></div>`;
     inner.appendChild(c);
   });
-  // add button
-  const addBtn=document.createElement('div');addBtn.className='item-card-add';addBtn.onclick=addItem;addBtn.textContent='＋';
-  inner.appendChild(addBtn);
+  const ab=document.createElement('div');ab.className='item-card-add';ab.onclick=addItem;ab.textContent='＋';inner.appendChild(ab);
 }
-
-function effectivePrice(item){
-  const price=parseFloat(item.price)||0;
-  const disc=parseFloat(item.disc)||0;
-  return price*(1-disc/100);
-}
-
+function effPrice(item){return (parseFloat(item.price)||0)*(1-(parseFloat(item.disc)||0)/100);}
 function comparePrices(){
   const parsed=items.map((item,i)=>{
-    const price=effectivePrice(item),qty=parseFloat(item.qty);
-    if(!price||!qty)return null;
+    const price=effPrice(item),qty=parseFloat(item.qty);if(!price||!qty)return null;
     const p=ppu(price,qty,item.unit);if(!p)return null;
-    const lbl=item.name||`${t('fieldName')} ${i+1}`;
-    return{...item,effPrice:price,qty,ppu:p,label:lbl};
+    return{...item,effPrice:price,qty,ppu:p,label:item.name||`${t('fieldName')} ${i+1}`};
   }).filter(Boolean);
-  if(parsed.length<2){alert(lang==='my'?'Masukkan sekurang-kurang 2 item dengan harga & saiz!':'Enter at least 2 items with price & size!');return;}
-
+  if(parsed.length<2){alert(lang==='my'?'Masukkan sekurang-kurang 2 item!':'Enter at least 2 items with price & size!');return;}
   const sorted=[...parsed].sort((a,b)=>a.ppu.value-b.ppu.value);
   const best=sorted[0],worst=sorted[sorted.length-1];
   const savPct=((worst.ppu.value-best.ppu.value)/worst.ppu.value*100).toFixed(1);
-  const wBase=toBase(worst.qty,worst.unit);
-  const savAmt=((worst.effPrice/toBase(worst.qty,worst.unit)-best.effPrice/toBase(best.qty,best.unit))*wBase).toFixed(2);
-
-  // highlight winner card
-  document.querySelectorAll('.item-card').forEach((c,i)=>{
-    if(items[i]){const lbl=items[i].name||`${t('fieldName')} ${i+1}`;c.classList.toggle('winner',lbl===best.label);}
-  });
-
-  const discNote=best.disc>0?` <span style="color:var(--gold);font-size:0.65rem;">(${best.disc}% off)</span>`:'';
-  const others=sorted.slice(1).map((s,i)=>{
-    const dn=s.disc>0?` (${s.disc}% off)`:'';
-    return`<div class="vother">
-      <span class="vother-rank">${i===0?'🥈':i===1?'🥉':'➡️'}</span>
-      <div style="flex:1">
-        <div class="vother-name">${s.label}${dn}</div>
-        ${s.store?`<div class="vother-store">🏪 ${s.store}</div>`:''}
-      </div>
-      <span class="vother-ppu">${activeSym}${s.ppu.value.toFixed(4)}</span>
-      <span class="vother-diff">+${((s.ppu.value-best.ppu.value)/best.ppu.value*100).toFixed(1)}%</span>
-    </div>`;
-  }).join('');
-
-  document.getElementById('verdict').innerHTML=`
-    <div class="verdict-best">
-      <div class="verdict-lbl">🏆 ${t('verdictLabel')}</div>
-      <div class="verdict-name">${best.label}${discNote}</div>
-      ${best.store?`<div class="verdict-store">🏪 ${best.store}</div>`:''}
-      <div class="verdict-ppu">${activeSym}${best.ppu.value.toFixed(4)} ${best.ppu.label}</div>
-      <div class="pill-row">
-        <span class="pill">💰 ${t('savePct')} ${savPct}%</span>
-        <span class="pill">🏷️ ${t('saveAmt')} ${activeSym}${savAmt}</span>
-      </div>
-    </div>
-    ${others}
-    <button class="btn btn-wa" onclick="shareWA()" style="margin-top:10px;">📲 ${lang==='my'?'Kongsi via WhatsApp':'Share via WhatsApp'}</button>`;
-
+  const savAmt=((worst.effPrice/toBase(worst.qty,worst.unit)-best.effPrice/toBase(best.qty,best.unit))*toBase(worst.qty,worst.unit)).toFixed(2);
+  document.querySelectorAll('.item-card').forEach((c,i)=>{if(items[i]){const lbl=items[i].name||`${t('fieldName')} ${i+1}`;c.classList.toggle('winner',lbl===best.label);}});
+  const dn=best.disc>0?` <span style="color:var(--gold);font-size:0.62rem;">(-${best.disc}%)</span>`:'';
+  const others=sorted.slice(1).map((s,i)=>`<div class="vother"><span class="vother-rank">${i===0?'🥈':i===1?'🥉':'➡️'}</span><div style="flex:1"><div class="vother-name">${s.label}${s.disc>0?` (-${s.disc}%)`:''}</div>${s.store?`<div class="vother-store">🏪 ${s.store}</div>`:''}</div><span class="vother-ppu">${activeSym}${s.ppu.value.toFixed(4)}</span><span class="vother-diff">+${((s.ppu.value-best.ppu.value)/best.ppu.value*100).toFixed(1)}%</span></div>`).join('');
+  document.getElementById('verdict').innerHTML=`<div class="verdict-best"><div class="verdict-lbl">🏆 ${t('verdictLabel')}</div><div class="verdict-name">${best.label}${dn}</div>${best.store?`<div class="verdict-store">🏪 ${best.store}</div>`:''}<div class="verdict-ppu">${activeSym}${best.ppu.value.toFixed(4)} ${best.ppu.label}</div><div class="pill-row"><span class="pill">💰 ${t('savePct')} ${savPct}%</span><span class="pill">🏷️ ${t('saveAmt')} ${activeSym}${savAmt}</span></div></div>${others}<button class="btn btn-wa" onclick="shareWA()" style="margin-top:10px;">📲 ${lang==='my'?'Kongsi via WhatsApp':'Share via WhatsApp'}</button>`;
   setTimeout(()=>document.getElementById('verdict').scrollIntoView({behavior:'smooth',block:'start'}),100);
   const h=JSON.parse(localStorage.getItem('jh')||'[]');
   h.unshift({date:new Date().toLocaleString(),best:best.label,store:best.store||'',price:best.effPrice,sym:activeSym,count:parsed.length});
-  localStorage.setItem('jh',JSON.stringify(h.slice(0,50)));
-  renderHist();window._lastCmp={best,sorted};
+  localStorage.setItem('jh',JSON.stringify(h.slice(0,50)));renderHist();window._lastCmp={best,sorted};
 }
-
 function shareWA(){
   if(!window._lastCmp)return;
   const{sorted}=window._lastCmp;
   let msg=`🛒 *${lang==='my'?'Perbandingan Harga':'Price Compare'}*\n\n`;
-  sorted.forEach((s,i)=>{
-    const dn=s.disc>0?` (-${s.disc}%)`:'' ;
-    msg+=`${i===0?'🏆':i+1+'.'} ${s.label}${dn}${s.store?' @ '+s.store:''}: ${activeSym}${s.ppu.value.toFixed(4)} ${s.ppu.label}\n`;
-  });
-  msg+=`\n_via Jimat App_`;
-  window.open('https://wa.me/?text='+encodeURIComponent(msg));
+  sorted.forEach((s,i)=>{msg+=`${i===0?'🏆':i+1+'.'} ${s.label}${s.disc>0?` (-${s.disc}%)`:''} ${s.store?'@ '+s.store:''}: ${activeSym}${s.ppu.value.toFixed(4)} ${s.ppu.label}\n`;});
+  msg+=`\n_via Jimat App_`;window.open('https://wa.me/?text='+encodeURIComponent(msg));
 }
 
-// ═══ SHOPPING LIST ═══
+// ═══ LIST ═══
 let liData=JSON.parse(localStorage.getItem('jli')||'[]');
 function addLI(){const inp=document.getElementById('liInput');const v=inp.value.trim();if(!v)return;liData.push({id:Date.now(),text:v,done:false});inp.value='';saveLI();renderLI();}
 function toggleLI(id){const x=liData.find(i=>i.id===id);if(x){x.done=!x.done;saveLI();renderLI();}}
@@ -802,9 +676,7 @@ function renderLI(){
   document.getElementById('liEmpty').style.display=liData.length?'none':'block';
   liData.forEach(item=>{
     const d=document.createElement('div');d.className='list-item-row'+(item.done?' done':'');
-    d.innerHTML=`<div class="chk${item.done?' on':''}" onclick="toggleLI(${item.id})">${item.done?'✓':''}</div>
-      <div class="li-txt${item.done?' done':''}">${item.text}</div>
-      <button class="del-x" style="position:relative;top:auto;right:auto;" onclick="removeLI(${item.id})">✕</button>`;
+    d.innerHTML=`<div class="chk${item.done?' on':''}" onclick="toggleLI(${item.id})">${item.done?'✓':''}</div><div class="li-txt${item.done?' done':''}">${item.text}</div><button class="del-x" style="position:relative;top:auto;right:auto;" onclick="removeLI(${item.id})">✕</button>`;
     c.appendChild(d);
   });
 }
@@ -815,18 +687,12 @@ function renderHist(){
   const h=JSON.parse(localStorage.getItem('jh')||'[]');
   const c=document.getElementById('histList');c.innerHTML='';
   document.getElementById('histEmpty').style.display=h.length?'none':'block';
-  h.forEach(x=>{
-    const d=document.createElement('div');d.className='hist-card';
-    d.innerHTML=`<div class="hist-date">${x.date}</div>
-      <div class="hist-win">🏆 ${x.best}${x.store?' @ '+x.store:''} — ${x.sym||'RM'}${parseFloat(x.price).toFixed(2)}</div>
-      <div class="hist-meta">${x.count} ${t('stores')}</div>`;
-    c.appendChild(d);
-  });
+  h.forEach(x=>{const d=document.createElement('div');d.className='hist-card';d.innerHTML=`<div class="hist-date">${x.date}</div><div class="hist-win">🏆 ${x.best}${x.store?' @ '+x.store:''} — ${x.sym||'RM'}${parseFloat(x.price).toFixed(2)}</div><div class="hist-meta">${x.count} ${t('stores')}</div>`;c.appendChild(d);});
 }
 
 // ═══ LOCATION ═══
-let userLocation='';
-function detectLocation(){
+let userLoc='';
+function detectLoc(){
   const btn=document.getElementById('locBtn'),txt=document.getElementById('locText');
   btn.textContent='...';txt.className='loc-text';txt.textContent=t('locDetect');
   if(!navigator.geolocation){txt.textContent=t('locFail');btn.textContent='Detect';return;}
@@ -834,255 +700,257 @@ function detectLocation(){
     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
       .then(r=>r.json()).then(d=>{
         const country=d.address?.country||'',city=d.address?.city||d.address?.town||d.address?.state||'';
-        userLocation=city?`${city}, ${country}`:country;
-        txt.className='loc-text found';txt.textContent=t('locFound').replace('[LOC]',userLocation);
+        userLoc=city?`${city}, ${country}`:country;
+        txt.className='loc-text found';txt.textContent=t('locFound').replace('[L]',userLoc);
         btn.textContent=lang==='my'?'Tukar':'Change';
-        const sel=document.getElementById('countrySelect');
-        for(let i=0;i<sel.options.length;i++){if(sel.options[i].value&&country.includes(sel.options[i].value.split(' ')[0])){sel.value=sel.options[i].value;break;}}
-      }).catch(()=>{userLocation='';txt.textContent=t('locFail');btn.textContent='Detect';});
+      }).catch(()=>{txt.textContent=t('locFail');btn.textContent='Detect';});
   },()=>{txt.textContent=t('locFail');btn.textContent='Detect';});
 }
-function onCountryChange(val){
-  if(val){userLocation=val;const txt=document.getElementById('locText');txt.className='loc-text found';txt.textContent=t('locFound').replace('[LOC]',val);}
+function onCountryPick(val){if(val){userLoc=val;const txt=document.getElementById('locText');txt.className='loc-text found';txt.textContent=t('locFound').replace('[L]',val);}}
+
+// ═══ SCAN — clean rewrite ═══
+let camStream=null,scanActive=false,scanDetected=false;
+
+function setMode(mode){
+  document.getElementById('mb-cam').classList.toggle('sel',mode==='cam');
+  document.getElementById('mb-man').classList.toggle('sel',mode==='man');
+  document.getElementById('camSection').classList.toggle('on',mode==='cam');
+  document.getElementById('manSection').classList.toggle('on',mode==='man');
+  document.getElementById('scanEmpty').style.display='none';
+  hideResults();
+  if(mode==='cam')startCam();else stopCam();
 }
 
-// ═══ SCAN — improved with native BarcodeDetector + ZXing fallback ═══
-let scanMode=null,camStream=null,scannerActive=false,zxReader=null,curQuery='';
-
-function selScan(mode){
-  scanMode=mode;
-  document.getElementById('so-barcode').classList.toggle('sel',mode==='barcode');
-  document.getElementById('so-photo').classList.toggle('sel',mode==='photo');
-  document.getElementById('camArea').classList.toggle('on',mode==='barcode');
-  document.getElementById('photoArea').classList.toggle('on',mode==='photo');
-  document.getElementById('scanEmpty').style.display='none';
-  clearScanResult();
-  if(mode==='barcode')startCam();else stopCam();
+function setScanStatus(msg,type){
+  const bar=document.getElementById('scanStatusBar'),txt=document.getElementById('scanStatusTxt');
+  if(!bar||!txt)return;
+  bar.className='scan-status-bar'+(type==='ok'?' ok':type==='err'?' err':'');
+  txt.textContent=msg;
 }
 
 async function startCam(){
-  if(scannerActive)return;
+  stopCam();
+  scanDetected=false;
   const vid=document.getElementById('scanVid');
-  const status=document.getElementById('scanStatus');
+  setScanStatus(t('scanStatus'),'');
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
     camStream=stream;vid.srcObject=stream;
+    await new Promise(res=>vid.onloadedmetadata=res);
     await vid.play();
-    scannerActive=true;
-    setScanStatus(t('scanStatusTrying'));
+    scanActive=true;
 
-    // Try native BarcodeDetector first (Android Chrome, iOS 17+)
+    // ── Strategy 1: native BarcodeDetector (Chrome Android, Safari iOS17+)
     if('BarcodeDetector' in window){
-      const detector=new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code']});
+      let formats=['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code'];
+      try{formats=await BarcodeDetector.getSupportedFormats();}catch(e){}
+      const detector=new BarcodeDetector({formats});
       const canvas=document.createElement('canvas');
       const ctx=canvas.getContext('2d');
-      const loop=async()=>{
-        if(!scannerActive)return;
-        if(vid.readyState>=2){
+      const tick=async()=>{
+        if(!scanActive||scanDetected)return;
+        if(vid.readyState>=2&&vid.videoWidth>0){
           canvas.width=vid.videoWidth;canvas.height=vid.videoHeight;
           ctx.drawImage(vid,0,0);
           try{
             const codes=await detector.detect(canvas);
-            if(codes.length>0){
-              setScanStatus(t('scanStatusFound'));
-              stopCam();doLookup(codes[0].rawValue);return;
-            }
+            if(codes.length){onCodeFound(codes[0].rawValue);return;}
           }catch(e){}
         }
-        setTimeout(loop,400);
+        requestAnimationFrame(tick);
       };
-      loop();
+      requestAnimationFrame(tick);
     } else {
-      // ZXing fallback
-      try{
-        const ZXing=window.ZXingBrowser||window.ZXing;
-        if(ZXing){
-          const hints=new Map();
-          const formats=[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.UPC_A];
-          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,formats);
-          zxReader=new ZXing.BrowserMultiFormatReader(hints,500);
-          zxReader.decodeFromVideoElement(vid,(result,err)=>{
-            if(result&&scannerActive){
-              setScanStatus(t('scanStatusFound'));
-              stopCam();doLookup(result.getText());
-            }
-          });
-        } else {
-          // Manual canvas loop fallback using ZXing global
-          startZxingLoop(vid);
+      // ── Strategy 2: ZXing via canvas polling
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+      const pollZX=()=>{
+        if(!scanActive||scanDetected)return;
+        if(vid.readyState>=2&&vid.videoWidth>0){
+          canvas.width=vid.videoWidth;canvas.height=vid.videoHeight;
+          ctx.drawImage(vid,0,0);
+          // Try imageData decode via ZXing if available
+          if(window.ZXing){
+            try{
+              const lum=new window.ZXing.RGBLuminanceSource(ctx.getImageData(0,0,canvas.width,canvas.height).data,canvas.width,canvas.height);
+              const bmp=new window.ZXing.BinaryBitmap(new window.ZXing.HybridBinarizer(lum));
+              const result=new window.ZXing.MultiFormatReader().decode(bmp);
+              if(result){onCodeFound(result.getText());return;}
+            }catch(e){}
+          }
         }
-      }catch(e){setScanStatus('📷 Camera ready — type barcode manually if needed');}
+        setTimeout(pollZX,300);
+      };
+      pollZX();
     }
   }catch(e){
-    setScanStatus(lang==='my'?'❌ Kamera tidak dapat diakses':'❌ Camera access denied');
+    setScanStatus(t('scanErr'),'err');
+    stopCam();
   }
 }
 
-function startZxingLoop(vid){
-  const canvas=document.createElement('canvas');
-  const ctx=canvas.getContext('2d');
-  const loop=()=>{
-    if(!scannerActive)return;
-    if(vid.readyState>=2&&vid.videoWidth>0){
-      canvas.width=vid.videoWidth;canvas.height=vid.videoHeight;
-      ctx.drawImage(vid,0,0);
-      try{
-        const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
-        // Try ZXing decode
-        if(window.ZXing){
-          const reader=new window.ZXing.MultiFormatReader();
-          const bmp=window.ZXing.BinaryBitmap&&new window.ZXing.BinaryBitmap(new window.ZXing.HybridBinarizer(new window.ZXing.RGBLuminanceSource(imgData.data,canvas.width,canvas.height)));
-          if(bmp){
-            try{const res=reader.decode(bmp);if(res){stopCam();doLookup(res.getText());return;}}catch(e){}
-          }
-        }
-      }catch(e){}
-    }
-    setTimeout(loop,500);
-  };
-  loop();
+function onCodeFound(code){
+  if(scanDetected)return;
+  scanDetected=true;
+  setScanStatus(t('scanFound'),'ok');
+  stopCam();
+  // small delay so user sees "found" message
+  setTimeout(()=>doLookup(code,'barcode'),400);
 }
 
-function setScanStatus(msg){const el=document.getElementById('scanStatus');if(el)el.textContent=msg;}
-
 function stopCam(){
-  scannerActive=false;
-  if(zxReader){try{zxReader.reset();}catch(e){}zxReader=null;}
+  scanActive=false;
   if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
   const vid=document.getElementById('scanVid');if(vid)vid.srcObject=null;
 }
 
-function lookupBC(code){code=(code||'').trim();if(!code)return;doLookup(code);}
-
-function lookupName(){
-  const n=document.getElementById('phName').value.trim();if(!n)return;
-  curQuery=n;showLoad();
-  fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(n)}&action=process&json=1&page_size=1`)
-    .then(r=>r.json()).then(d=>{hideLoad();d.products?.length?showProduct(d.products[0]):showNotFound(n);})
-    .catch(()=>{hideLoad();showNotFound(n);});
+function doLookupBC(){
+  const code=document.getElementById('manBC').value.trim();
+  if(!code)return;
+  doLookup(code,'barcode');
+}
+function doLookupName(){
+  const name=document.getElementById('manName').value.trim();
+  if(!name)return;
+  doLookup(name,'name');
 }
 
-function onScanPhoto(e){
-  const f=e.target.files[0];if(!f)return;
-  const img=document.getElementById('phPreview');
-  img.src=URL.createObjectURL(f);img.style.display='block';
-  document.getElementById('phHolder').style.display='none';
-  document.getElementById('phName').focus();
+function doLookup(query,type){
+  hideResults();
+  document.getElementById('scanLoader').classList.add('on');
+  document.getElementById('scanEmpty').style.display='none';
+
+  let url='';
+  if(type==='barcode'){
+    url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(query)}.json?fields=product_name,brands,image_url,countries,ingredients_text,allergens_tags,labels_tags,categories_tags,nutriments,nova_group,additives_tags,code`;
+  } else {
+    url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&action=process&json=1&page_size=1&fields=product_name,brands,image_url,countries,ingredients_text,allergens_tags,labels_tags,categories_tags,nutriments,nova_group,additives_tags,code`;
+  }
+
+  fetch(url,{headers:{'User-Agent':'JimatApp/1.0'}})
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('scanLoader').classList.remove('on');
+      let product=null;
+      if(type==='barcode'&&d.status===1)product=d.product;
+      else if(type==='name'&&d.products&&d.products.length>0)product=d.products[0];
+      if(product)showProduct(product,query);
+      else showNotFound(query);
+    })
+    .catch(()=>{
+      document.getElementById('scanLoader').classList.remove('on');
+      showNotFound(query);
+    });
 }
 
-function doLookup(code){
-  curQuery=code;showLoad();
-  fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`)
-    .then(r=>r.json()).then(d=>{hideLoad();d.status===1?showProduct(d.product):showNotFound(code);})
-    .catch(()=>{hideLoad();showNotFound(code);});
-}
-
-function detectAudience(p){
-  const badges=[];
-  const ing=(p.ingredients_text||'').toLowerCase();
-  const tags=p.labels_tags||[];
-  const cats=(p.categories_tags||[]).join(' ').toLowerCase();
-  const al=(p.allergens_tags||[]);
-  const isVeg=tags.some(l=>l.includes('vegetarian')||l.includes('vegan'));
-  const hasAnimal=['chicken','beef','pork','fish','meat','lard','gelatin'].some(w=>ing.includes(w));
-  if(isVeg||(!hasAnimal&&ing.length>10))badges.push({cls:'aud-veg',tx:'🌱 '+(lang==='my'?'Mesra Vegetarian':'Vegetarian Friendly')});
-  if(cats.includes('food')||cats.includes('beverage')||cats.includes('drink')||cats.includes('snack')||cats.includes('dairy')||cats.includes('cereal'))
-    badges.push({cls:'aud-food',tx:'🍽️ '+(lang==='my'?'Makanan/Minuman':'Food & Drink')});
-  if(cats.includes('supplement')||cats.includes('medicine')||cats.includes('vitamin')||cats.includes('health'))
-    badges.push({cls:'aud-med',tx:'💊 '+(lang==='my'?'Suplemen':'Supplement')});
-  const hasAlc=['alcohol','wine','beer','spirits'].some(w=>ing.includes(w)||tags.some(l=>l.includes('alcohol')));
-  if(!hasAlc)badges.push({cls:'aud-travel',tx:'✈️ '+(lang==='my'?'Sesuai Traveler':'Travel Friendly')});
-  return badges;
-}
-
-function showProduct(p){
-  const name=p.product_name||p.product_name_en||'Unknown';
+function showProduct(p,rawQuery){
+  const name=p.product_name||p.product_name_en||rawQuery||'Unknown Product';
   const brand=p.brands||'';
-  curQuery=name+(brand?' '+brand:'');
-  document.getElementById('rpName').textContent=name;
-  document.getElementById('rpBrand').textContent=brand?'🏷️ '+brand:'';
-  document.getElementById('audienceRow').innerHTML=detectAudience(p).map(b=>`<span class="aud-badge ${b.cls}">${b.tx}</span>`).join('');
+  const code=p.code||rawQuery||'';
+  const displayQuery=name+(brand?' '+brand:'');
 
+  // header
+  document.getElementById('pcName').textContent=name;
+  document.getElementById('pcBrand').textContent=brand?'🏷️ '+brand:'';
+  document.getElementById('pcBarcode').textContent=code?'# '+code:'';
+
+  // image
+  const wrap=document.getElementById('pcImgWrap');
+  if(p.image_url){
+    wrap.innerHTML=`<img class="pc-img" src="${p.image_url}" alt="" onerror="this.parentNode.innerHTML='<div class=\\'pc-img-placeholder\\'>🛒</div>'">`;
+  } else {
+    wrap.innerHTML='<div class="pc-img-placeholder">🛒</div>';
+  }
+
+  // info pills
+  const pills=[];
   const ltags=p.labels_tags||[];
-  const hEl=document.getElementById('rpHalal');
-  if(ltags.some(l=>l.includes('halal')))
-    hEl.innerHTML=`<span class="badge b-green">${t('halalYes')}</span>${p.labels?`<br><span style="font-size:0.68rem;color:var(--text2)">📜 ${p.labels}</span>`:''}`;
-  else if(ltags.some(l=>l.includes('non-halal')||l.includes('pork')||l.includes('alcohol')))
-    hEl.innerHTML=`<span class="badge b-red">${t('halalNo')}</span>`;
-  else hEl.innerHTML=`<span class="badge b-grey">${t('halalUnk')}</span> <span style="font-size:0.65rem;color:var(--text2)">— ${lang==='my'?'Semak portal di bawah':'Verify using portals below'}</span>`;
-
-  document.getElementById('rpOrigin').textContent=p.countries||p.manufacturing_places||t('originUnk');
-  document.getElementById('rpIng').textContent=p.ingredients_text||p.ingredients_text_en||t('ingNone');
-
-  const al=p.allergens_tags||[];
-  document.getElementById('rpAllergens').innerHTML=al.length
-    ?al.map(a=>`<span class="badge b-red">⚠️ ${a.replace(/^en:/,'').replace(/-/g,' ')}</span>`).join('')
-    :`<span class="badge b-green">${t('allerNone')}</span>`;
-
-  const warns=[];const nm=p.nutriments||{};
   const ingL=(p.ingredients_text||'').toLowerCase();
-  if(al.some(a=>a.includes('gluten')))warns.push({c:'b-red',tx:'⚠️ '+(lang==='my'?'Mengandungi Gluten':'Contains Gluten')});
-  if(al.some(a=>a.includes('peanut')||a.includes('nut')))warns.push({c:'b-red',tx:'🥜 '+(lang==='my'?'Kacang (Alergen)':'Nuts (Allergen)')});
-  if(al.some(a=>a.includes('milk')))warns.push({c:'b-yellow',tx:'🥛 '+(lang==='my'?'Mengandungi Susu':'Contains Milk')});
-  if(ingL.includes('pork')||ingL.includes('babi')||al.some(a=>a.includes('pork')))warns.push({c:'b-red',tx:'🐷 '+(lang==='my'?'Mengandungi Babi':'Contains Pork')});
-  if(ingL.includes('alcohol')||ingL.includes('wine')||ingL.includes('beer'))warns.push({c:'b-red',tx:'🍷 '+(lang==='my'?'Mengandungi Alkohol':'Contains Alcohol')});
-  if(nm['sugars_100g']>20)warns.push({c:'b-yellow',tx:'🍬 '+(lang==='my'?'Gula Tinggi':'High Sugar')});
-  if(nm['sodium_100g']>0.6)warns.push({c:'b-yellow',tx:'🧂 '+(lang==='my'?'Natrium Tinggi':'High Sodium')});
-  if(nm['saturated-fat_100g']>5)warns.push({c:'b-yellow',tx:'🧈 '+(lang==='my'?'Lemak Tepu Tinggi':'High Saturated Fat')});
-  if(p.nova_group===4)warns.push({c:'b-red',tx:'🏭 '+(lang==='my'?'Ultra-Diproses (NOVA 4)':'Ultra-Processed (NOVA 4)')});
-  if((p.additives_tags||[]).length>5)warns.push({c:'b-yellow',tx:`🧪 ${p.additives_tags.length} `+(lang==='my'?'bahan tambah':'additives')});
-  document.getElementById('rpWarn').innerHTML=warns.length
-    ?warns.map(w=>`<span class="badge ${w.c}">${w.tx}</span>`).join('')
-    :`<span class="badge b-green">✅ ${t('warnNone')}</span>`;
+  const al=p.allergens_tags||[];
 
-  setLinks(curQuery);
-  document.getElementById('scanResult').classList.add('on');
-  setTimeout(()=>document.getElementById('scanResult').scrollIntoView({behavior:'smooth',block:'start'}),100);
+  // Halal pill
+  if(ltags.some(l=>l.includes('halal')))pills.push({c:'ip-green',tx:t('halalYes')});
+  else if(ltags.some(l=>l.includes('non-halal'))||ingL.includes('pork')||ingL.includes('lard')||al.some(a=>a.includes('pork')))pills.push({c:'ip-red',tx:t('halalNo')});
+  else pills.push({c:'ip-grey',tx:t('halalUnk')});
+
+  // Alcohol
+  if(ingL.includes('alcohol')||ingL.includes('wine')||ingL.includes('beer'))pills.push({c:'ip-red',tx:'🍷 '+(lang==='my'?'Alkohol':'Alcohol')});
+  // Pork explicit
+  if(ingL.includes('pork')||ingL.includes('babi')||ingL.includes('lard'))pills.push({c:'ip-red',tx:'🐷 '+(lang==='my'?'Babi/Lard':'Pork/Lard')});
+  // Vegetarian
+  if(ltags.some(l=>l.includes('vegetarian')))pills.push({c:'ip-green',tx:'🌱 '+(lang==='my'?'Vegetarian':'Vegetarian')});
+  // NOVA 4
+  if(p.nova_group===4)pills.push({c:'ip-yellow',tx:'🏭 Ultra-processed'});
+  // High sugar
+  if(p.nutriments&&p.nutriments['sugars_100g']>20)pills.push({c:'ip-yellow',tx:'🍬 '+(lang==='my'?'Gula Tinggi':'High Sugar')});
+  // Allergens
+  if(al.length>0)pills.push({c:'ip-red',tx:'🚨 '+al.length+(lang==='my'?' Alergen':' Allergen'+(al.length>1?'s':''))});
+
+  document.getElementById('infoPills').innerHTML=pills.map(pp=>`<span class="ipill ${pp.c}">${pp.tx}</span>`).join('');
+
+  // details
+  document.getElementById('pcOrigin').textContent=p.countries||p.manufacturing_places||t('originUnk');
+  document.getElementById('pcIng').textContent=p.ingredients_text||p.ingredients_text_en||t('ingNone');
+  document.getElementById('pcAllergens').textContent=al.length?al.map(a=>a.replace(/^en:/,'').replace(/-/g,' ')).join(', '):t('allerNone');
+
+  // set search links
+  setSearchLinks(displayQuery,code);
+
+  document.getElementById('productCard').classList.add('on');
+  setTimeout(()=>document.getElementById('productCard').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
-function showNotFound(q){
-  document.getElementById('rpName').textContent=q;
-  document.getElementById('rpBrand').textContent='';
-  document.getElementById('audienceRow').innerHTML='';
-  document.getElementById('rpHalal').innerHTML=`<span style="font-size:0.73rem;color:var(--text2)">${t('notFound')}</span>`;
-  ['rpOrigin','rpIng'].forEach(id=>document.getElementById(id).textContent='—');
-  ['rpAllergens','rpWarn'].forEach(id=>document.getElementById(id).innerHTML='—');
-  setLinks(q);
-  document.getElementById('scanResult').classList.add('on');
+function showNotFound(query){
+  document.getElementById('nfMsg').textContent=t('notFoundMsg');
+  setSearchLinks2(query,'');
+  document.getElementById('notFoundCard').style.display='block';
+  setTimeout(()=>document.getElementById('notFoundCard').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
-function setLinks(q){
-  const loc=userLocation?` in ${userLocation}`:'';
-  const prompt=t('aiPrompt').replace('[P]',q).replace('[LOC]',loc);
+function buildPrompt(query){
+  const loc=userLoc?` in ${userLoc}`:'';
+  return t('aiPrompt').replace('[P]',query).replace('[L]',loc);
+}
+
+function setSearchLinks(query,code){
+  const prompt=buildPrompt(query);
   const enc=encodeURIComponent(prompt);
-  const gq=encodeURIComponent(q+(userLocation?` halal ${userLocation} ingredients`:'halal ingredients country origin'));
-
-  // HALAL PORTALS — all with product query pre-filled
-  document.getElementById('hJakim').href=`https://myehalal.halal.gov.my/portal-halal/v1/index.php`;
-  document.getElementById('hMye').href=`https://myehalal.halal.gov.my/portal-halal/v1/directory/slm_search.php?keyword=${encodeURIComponent(q)}`;
-  document.getElementById('hVerify').href=`https://verifyhalal.com/search?q=${encodeURIComponent(q)}`;
-  document.getElementById('hFinder').href=`https://halalfinderapp.com/search?q=${encodeURIComponent(q)}`;
-  document.getElementById('hMuis').href=`https://www.muis.gov.sg/HalalSearch/Product?searchText=${encodeURIComponent(q)}`;
-  document.getElementById('hOiic').href=`https://www.google.com/search?q=${encodeURIComponent(q+' halal certification OIC international')}`;
-
-  // AI
-  document.getElementById('aiGoogle').href=`https://www.google.com/search?q=${gq}`;
-  document.getElementById('aiGPT').href=`https://chatgpt.com/?q=${enc}`;
-  document.getElementById('aiCopilot').href=`https://copilot.microsoft.com/?q=${enc}`;
-  document.getElementById('aiGemini').href=`https://gemini.google.com/app?q=${enc}`;
-  document.getElementById('aiClaude').href=`https://claude.ai/new?q=${enc}`;
+  const gq=encodeURIComponent(`${query} halal${userLoc?' '+userLoc:''} ingredients safe`);
+  document.getElementById('sGoogle').href=`https://www.google.com/search?q=${gq}`;
+  document.getElementById('sGPT').href=`https://chatgpt.com/?q=${enc}`;
+  document.getElementById('sCopilot').href=`https://copilot.microsoft.com/?q=${enc}`;
+  document.getElementById('sGemini').href=`https://gemini.google.com/app?q=${enc}`;
+  document.getElementById('sClaude').href=`https://claude.ai/new?q=${enc}`;
+  document.getElementById('sOFF').href=code
+    ?`https://world.openfoodfacts.org/product/${code}`
+    :`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}`;
+}
+function setSearchLinks2(query,code){
+  const prompt=buildPrompt(query);
+  const enc=encodeURIComponent(prompt);
+  const gq=encodeURIComponent(`${query} halal${userLoc?' '+userLoc:''} ingredients`);
+  document.getElementById('sGoogle2').href=`https://www.google.com/search?q=${gq}`;
+  document.getElementById('sGPT2').href=`https://chatgpt.com/?q=${enc}`;
+  document.getElementById('sCopilot2').href=`https://copilot.microsoft.com/?q=${enc}`;
+  document.getElementById('sGemini2').href=`https://gemini.google.com/app?q=${enc}`;
+  document.getElementById('sClaude2').href=`https://claude.ai/new?q=${enc}`;
 }
 
-function showLoad(){clearScanResult();document.getElementById('scanLoader').classList.add('on');document.getElementById('scanEmpty').style.display='none';}
-function hideLoad(){document.getElementById('scanLoader').classList.remove('on');}
-function clearScanResult(){document.getElementById('scanResult').classList.remove('on');}
+function hideResults(){
+  document.getElementById('productCard').classList.remove('on');
+  document.getElementById('notFoundCard').style.display='none';
+}
 function resetScan(){
-  clearScanResult();hideLoad();document.getElementById('scanEmpty').style.display='block';
-  document.getElementById('manBC').value='';document.getElementById('phName').value='';
-  document.getElementById('phPreview').style.display='none';document.getElementById('phHolder').style.display='flex';
-  scanMode=null;
-  ['so-barcode','so-photo'].forEach(id=>document.getElementById(id).classList.remove('sel'));
-  document.getElementById('camArea').classList.remove('on');document.getElementById('photoArea').classList.remove('on');
+  hideResults();
+  document.getElementById('scanLoader').classList.remove('on');
+  document.getElementById('scanEmpty').style.display='block';
+  document.getElementById('manBC').value='';
+  document.getElementById('manName').value='';
+  document.getElementById('mb-cam').classList.remove('sel');
+  document.getElementById('mb-man').classList.remove('sel');
+  document.getElementById('camSection').classList.remove('on');
+  document.getElementById('manSection').classList.remove('on');
+  stopCam();scanDetected=false;
 }
 
 // ═══ SURVEY ═══
@@ -1100,42 +968,24 @@ function onSvPhoto(e){
   reader.onload=ev=>{
     const img=new Image();
     img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      const MAX=600,scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      const canvas=document.createElement('canvas'),MAX=600,scale=Math.min(1,MAX/Math.max(img.width,img.height));
       canvas.width=img.width*scale;canvas.height=img.height*scale;
       canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-      canvas.toBlob(blob=>{
-        svBlob=blob;
-        const prev=document.getElementById('svPreview');
-        prev.src=URL.createObjectURL(blob);prev.style.display='block';
-        document.getElementById('svPlaceholder').style.display='none';
-      },'image/jpeg',0.7);
-    };
-    img.src=ev.target.result;
-  };
-  reader.readAsDataURL(f);
+      canvas.toBlob(blob=>{svBlob=blob;const prev=document.getElementById('svPreview');prev.src=URL.createObjectURL(blob);prev.style.display='block';document.getElementById('svPlaceholder').style.display='none';},'image/jpeg',0.7);
+    };img.src=ev.target.result;
+  };reader.readAsDataURL(f);
 }
 function saveSurvey(){
   if(!svBlob){alert(lang==='my'?'Sila ambil foto dahulu!':'Please take a photo first!');return;}
-  const store=document.getElementById('svStore').value.trim();
-  const note=document.getElementById('svNote').value.trim();
-  const btn=document.getElementById('t-svSave');
-  btn.textContent=lang==='my'?'⏳ Menyimpan...':'⏳ Saving...';btn.disabled=true;
+  const store=document.getElementById('svStore').value.trim(),note=document.getElementById('svNote').value.trim();
+  const btn=document.getElementById('t-svSave');btn.textContent=lang==='my'?'⏳ Menyimpan...':'⏳ Saving...';btn.disabled=true;
   const reader=new FileReader();
   reader.onload=ev=>{
     const rec={store:store||'—',note:note||'—',date:new Date().toLocaleString(),imgData:ev.target.result};
-    const tx=svDB.transaction('photos','readwrite');
-    tx.objectStore('photos').add(rec);
-    tx.oncomplete=()=>{
-      btn.innerHTML=t('svSave');btn.disabled=false;svBlob=null;
-      document.getElementById('svPreview').style.display='none';document.getElementById('svPlaceholder').style.display='flex';
-      document.getElementById('svStore').value='';document.getElementById('svNote').value='';document.getElementById('svFile').value='';
-      renderSurveyGallery();
-      setTimeout(()=>document.getElementById('sgGrid').scrollIntoView({behavior:'smooth',block:'start'}),150);
-    };
+    const tx=svDB.transaction('photos','readwrite');tx.objectStore('photos').add(rec);
+    tx.oncomplete=()=>{btn.innerHTML=t('svSave');btn.disabled=false;svBlob=null;document.getElementById('svPreview').style.display='none';document.getElementById('svPlaceholder').style.display='flex';document.getElementById('svStore').value='';document.getElementById('svNote').value='';document.getElementById('svFile').value='';renderSurveyGallery();setTimeout(()=>document.getElementById('sgGrid').scrollIntoView({behavior:'smooth',block:'start'}),150);};
     tx.onerror=()=>{btn.innerHTML=t('svSave');btn.disabled=false;};
-  };
-  reader.readAsDataURL(svBlob);
+  };reader.readAsDataURL(svBlob);
 }
 function renderSurveyGallery(){
   if(!svDB)return;
@@ -1146,31 +996,14 @@ function renderSurveyGallery(){
     document.getElementById('sgEmpty').style.display=photos.length?'none':'block';
     photos.forEach(p=>{
       const d=document.createElement('div');d.className='sg-item';
-      d.innerHTML=`<img class="sg-img" src="${p.imgData}" alt="">
-        <div class="sg-body">
-          <div class="sg-store">${p.store}</div><div class="sg-note">${p.note}</div>
-          <div class="sg-date">📅 ${p.date}</div>
-          <div class="sg-actions">
-            <button class="sg-btn" onclick="shareSv(${p.id})">${t('svShareBtn')}</button>
-            <button class="sg-btn del" onclick="deleteSv(${p.id})">${t('svDeleteBtn')}</button>
-          </div>
-        </div>`;
+      d.innerHTML=`<img class="sg-img" src="${p.imgData}" alt=""><div class="sg-body"><div class="sg-store">${p.store}</div><div class="sg-note">${p.note}</div><div class="sg-date">📅 ${p.date}</div><div class="sg-actions"><button class="sg-btn" onclick="shareSv(${p.id})">${t('svShareBtn')}</button><button class="sg-btn" onclick="deleteSv(${p.id})">${t('svDeleteBtn')}</button></div></div>`;
       grid.appendChild(d);
     });
   };
 }
 function deleteSv(id){const tx=svDB.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=()=>renderSurveyGallery();}
-function shareSv(id){
-  const tx=svDB.transaction('photos','readonly');
-  tx.objectStore('photos').get(id).onsuccess=e=>{
-    const p=e.target.result;if(!p)return;
-    window.open('https://wa.me/?text='+encodeURIComponent(`📷 *${lang==='my'?'Survei Harga':'Price Survey'}*\n🏪 ${p.store}\n📝 ${p.note}\n📅 ${p.date}\n\n_via Jimat App_`));
-  };
-}
-function clearSurvey(){
-  if(!confirm(lang==='my'?'Padam semua foto survei?':'Delete all survey photos?'))return;
-  const tx=svDB.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=()=>renderSurveyGallery();
-}
+function shareSv(id){const tx=svDB.transaction('photos','readonly');tx.objectStore('photos').get(id).onsuccess=e=>{const p=e.target.result;if(!p)return;window.open('https://wa.me/?text='+encodeURIComponent(`📷 *${lang==='my'?'Survei Harga':'Price Survey'}*\n🏪 ${p.store}\n📝 ${p.note}\n📅 ${p.date}\n\n_via Jimat App_`));};}
+function clearSurvey(){if(!confirm(lang==='my'?'Padam semua foto survei?':'Delete all survey photos?'))return;const tx=svDB.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=()=>renderSurveyGallery();}
 
 // ═══ INIT ═══
 addItem();addItem();
