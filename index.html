@@ -280,9 +280,20 @@
     <!-- Photo scan section -->
     <div class="info-card">
       <div class="info-section-title">📷 Scan Ingredients Label</div>
-      <input type="file" accept="image/*" capture="environment" id="info-cam-input" style="display:none;" onchange="handleInfoPhoto(event)">
-      <button class="btn btn-primary" id="info-photo-btn" onclick="document.getElementById('info-cam-input').click()">Take Photo of Label</button>
+      <div class="info-cam-wrap" id="info-cam-wrap">
+        <video id="info-cam-video" autoplay playsinline muted></video>
+        <div class="info-cam-overlay">
+          <div class="info-scan-frame"><div class="info-scan-line"></div></div>
+          <div class="info-scan-hint">Point at ingredients text — hold steady</div>
+        </div>
+      </div>
+      <canvas id="info-canvas" style="display:none;"></canvas>
+      <div class="info-cam-status" id="info-cam-status"></div>
       <img id="info-photo-preview" class="info-photo-preview">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" id="info-photo-btn" onclick="toggleInfoCamera()" style="flex:1;">📷 Start Camera</button>
+        <button class="btn btn-outline" id="info-capture-btn" onclick="captureInfoPhoto()" style="flex:1;display:none;">⚡ Capture</button>
+      </div>
       <div id="halal-result" class="halal-result"></div>
     </div>
 
@@ -417,6 +428,7 @@
     if (t === 'list') renderList();
     if (t === 'history') renderHistory();
     if (t === 'survey') loadSurveyGallery();
+    if (t !== 'info' && infoCamActive) stopInfoCamera();
     window.scrollTo(0, 0);
   }
 
@@ -1280,26 +1292,100 @@
     }
   }
 
-  function handleInfoPhoto(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+  let infoCamStream = null;
+  let infoCamActive = false;
+
+  async function toggleInfoCamera() {
+    const btn = document.getElementById('info-photo-btn');
+    const capBtn = document.getElementById('info-capture-btn');
+    const wrap = document.getElementById('info-cam-wrap');
+    const status = document.getElementById('info-cam-status');
+
+    if (infoCamActive) {
+      // Stop camera
+      stopInfoCamera();
+      return;
+    }
+
+    try {
+      infoCamStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      const video = document.getElementById('info-cam-video');
+      video.srcObject = infoCamStream;
+      wrap.style.display = 'block';
+      infoCamActive = true;
+      btn.textContent = '⏹ Stop Camera';
+      capBtn.style.display = 'block';
+      status.textContent = 'Camera ready — point at ingredients label';
+    } catch(e) {
+      status.textContent = 'Camera not available — use photo upload below';
+      // Fallback to file input
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.capture = 'environment';
+      inp.onchange = function(ev) {
+        const file = ev.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('info-photo-preview');
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          extractIngredientsFromPhoto(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      };
+      inp.click();
+    }
+  }
+
+  function stopInfoCamera() {
+    if (infoCamStream) {
+      infoCamStream.getTracks().forEach(function(t) { t.stop(); });
+      infoCamStream = null;
+    }
+    const video = document.getElementById('info-cam-video');
+    if (video) video.srcObject = null;
+    document.getElementById('info-cam-wrap').style.display = 'none';
+    document.getElementById('info-capture-btn').style.display = 'none';
+    document.getElementById('info-photo-btn').textContent = '📷 Start Camera';
+    document.getElementById('info-cam-status').textContent = '';
+    infoCamActive = false;
+  }
+
+  function captureInfoPhoto() {
+    const video = document.getElementById('info-cam-video');
+    const canvas = document.getElementById('info-canvas');
+    if (!video || !video.videoWidth) return;
+
+    // Compress capture for faster API call
+    canvas.width = Math.min(video.videoWidth, 800);
+    canvas.height = Math.round(video.videoHeight * canvas.width / video.videoWidth);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+    // Show captured preview
     const preview = document.getElementById('info-photo-preview');
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-      // Use Anthropic API to extract ingredients from photo
-      extractIngredientsFromPhoto(e.target.result);
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+
+    // Stop camera after capture
+    stopInfoCamera();
+
+    // Extract ingredients
+    extractIngredientsFromPhoto(dataUrl);
   }
 
   async function extractIngredientsFromPhoto(base64img) {
     const resultEl = document.getElementById('halal-result');
+    const status = document.getElementById('info-cam-status');
     resultEl.style.display = 'block';
     resultEl.className = 'halal-result halal-check';
-    resultEl.innerHTML = '<div class="halal-title">\u23F3 Reading label...</div>';
+    resultEl.innerHTML = '<div class="halal-title">\u23F3 Reading label with AI...</div>';
+    if (status) status.textContent = 'Analysing...';
 
     try {
       const base64data = base64img.split(',')[1];
@@ -1308,26 +1394,29 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
+          max_tokens: 800,
           messages: [{
             role: 'user',
             content: [
               { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64data } },
-              { type: 'text', text: 'Extract ONLY the ingredients list from this food/product label. Return just the raw ingredients text, nothing else. If no ingredients visible, reply: NO_INGREDIENTS_FOUND' }
+              { type: 'text', text: 'Extract ONLY the ingredients/bahan-bahan list from this food label. Return just the raw ingredients text, comma separated. If none visible, reply: NO_INGREDIENTS_FOUND' }
             ]
           }]
         })
       });
       const data = await response.json();
-      const extracted = data.content && data.content[0] ? data.content[0].text : '';
+      const extracted = data.content && data.content[0] ? data.content[0].text.trim() : '';
+      if (status) status.textContent = '';
+
       if (extracted && extracted !== 'NO_INGREDIENTS_FOUND') {
         document.getElementById('ingredient-input').value = extracted;
         checkIngredients(extracted);
       } else {
-        resultEl.innerHTML = '<div class="halal-title">Could not read ingredients</div><div style="font-size:0.68rem;color:var(--text2);">Try typing the ingredients manually below.</div>';
+        resultEl.innerHTML = '<div class="halal-title">Could not read ingredients</div><div style="font-size:0.68rem;color:var(--text2);">Ensure the label text is clear and well-lit. Try typing ingredients manually below.</div>';
       }
     } catch(e) {
-      resultEl.innerHTML = '<div class="halal-title">Offline mode</div><div style="font-size:0.68rem;color:var(--text2);">Type ingredients manually and tap Check.</div>';
+      if (status) status.textContent = '';
+      resultEl.innerHTML = '<div class="halal-title">\u26A0\uFE0F Offline or error</div><div style="font-size:0.68rem;color:var(--text2);">Type ingredients manually and tap Check below.</div>';
     }
   }
 
