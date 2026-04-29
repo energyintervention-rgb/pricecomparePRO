@@ -11,6 +11,7 @@
   <meta name="theme-color" content="#0a0f1e">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     :root {
       --bg: #0a0f1e;
@@ -67,6 +68,8 @@
     .nb .ni { font-size: 20px; transition: transform 0.25s cubic-bezier(.34,1.56,.64,1); }
     .nb.active { color: var(--accent); }
     .nb.active .ni { transform: scale(1.2) translateY(-1px); filter: drop-shadow(0 0 8px var(--accent)); }
+    .info-icon { color: #00c853; font-size: 22px !important; }
+    .nb.active .info-icon { color: #00e676; filter: drop-shadow(0 0 8px #00e676); }
 
     /* ── HEADER AREA ── */
     .pg-header { margin-bottom: 18px; }
@@ -386,18 +389,18 @@
 
     <!-- ══ INFO ══ -->
     <div class="page" id="pg-info">
-      <div class="pg-header"><div class="pg-title" id="t-infoH">🔍 Check Ingredients</div><div class="pg-sub" id="t-infoSub">Detect harmful E-codes, pork, alcohol & more</div></div>
+      <div class="pg-header"><div class="pg-title" id="t-infoH"><span style="color:#00e676;">☽</span> Check Ingredients</div><div class="pg-sub" id="t-infoSub">Detect harmful E-codes, pork, alcohol & more</div></div>
 
       <div class="info-hero">
-        <div class="info-hero-icon">☪️</div>
+        <div class="info-hero-icon" style="color:#00e676;font-size:52px;">☽</div>
         <div class="info-hero-title" id="t-infoHeroTitle">Halal & Safety Checker</div>
         <div class="info-hero-sub" id="t-infoHeroSub">Take a photo of an ingredient list or type it below. We check for pork derivatives, alcohol, harmful E-codes and flag anything not suitable for Muslims, vegetarians or health-conscious consumers.</div>
       </div>
 
       <!-- Photo capture -->
-      <span class="sec-label" id="t-photoLbl">Photo of ingredient list</span>
+      <span class="sec-label" id="t-photoLbl">Photo of ingredient list — auto-reads text</span>
       <div class="photo-check-box" id="pcBox" onclick="document.getElementById('infoPhoto').click()">
-        <div class="pcb-ph" id="pcbPh"><div class="pcbi">📷</div><p id="t-photoTap">Tap to take photo of ingredient label</p></div>
+        <div class="pcb-ph" id="pcbPh"><div class="pcbi">📷</div><p id="t-photoTap">Tap to take photo — AI reads the text automatically</p></div>
         <img id="infoPhotoPreview" alt="">
       </div>
       <input type="file" id="infoPhoto" accept="image/*" capture="environment" onchange="onInfoPhoto(event)" style="display:none;">
@@ -437,7 +440,7 @@
     <button class="nb" onclick="showPg('list',this)"><span class="ni">🛒</span><span id="nl-list">List</span></button>
     <button class="nb" onclick="showPg('history',this)"><span class="ni">📋</span><span id="nl-history">History</span></button>
     <button class="nb" onclick="showPg('survey',this)"><span class="ni">📷</span><span id="nl-survey">Survey</span></button>
-    <button class="nb" onclick="showPg('info',this)"><span class="ni">☪️</span><span id="nl-info">Info</span></button>
+    <button class="nb" onclick="showPg('info',this)"><span class="ni info-icon">☽</span><span id="nl-info">Info</span></button>
   </nav>
 </div>
 
@@ -940,18 +943,35 @@ function checkIngredients() {
   runCheck(raw);
 }
 
+function hasIngredientMatch(text, code) {
+  // Escape regex special chars
+  const esc = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Use start-of-word boundary only (lookbehind) to avoid e.g. "alcohol" in "halal" (it doesn't, but "lard" in "playground")
+  const re = new RegExp('(?<![a-zA-Z])' + esc, 'i');
+  return re.test(text);
+}
+
 function runCheck(rawText) {
   document.getElementById('infoLoader').classList.add('on');
   document.getElementById('infoResult').classList.remove('on');
 
-  // Simulate brief processing delay for UX
   setTimeout(() => {
     document.getElementById('infoLoader').classList.remove('on');
     const lower = rawText.toLowerCase();
-    const found = [];
 
+    // ── HALAL LOGO / CERTIFICATION DETECTION ──
+    const halalCertified =
+      /\bhalal\b/i.test(rawText) ||
+      /ms1500/i.test(rawText) ||
+      /jakim/i.test(rawText) ||
+      /muis/i.test(rawText) ||
+      /mui\b/i.test(rawText) ||
+      /ifanca/i.test(rawText) ||
+      /hfa\b/i.test(rawText);
+
+    const found = [];
     HARAM_UNIQUE.forEach(item => {
-      if(item.codes.some(code => lower.includes(code.toLowerCase()))) {
+      if(item.codes.some(code => hasIngredientMatch(lower, code.toLowerCase()))) {
         if(!found.find(f => f.name === item.name)) found.push(item);
       }
     });
@@ -959,11 +979,19 @@ function runCheck(rawText) {
     const haramBox = document.getElementById('haramBox');
     haramBox.innerHTML = '';
 
+    // Show halal certification banner if detected
+    if(halalCertified && found.filter(f => ['pork','alcohol','haram','drug'].includes(f.type)).length === 0) {
+      haramBox.innerHTML += `
+        <div class="alert-safe" style="border-color:rgba(0,229,160,0.5);margin-bottom:12px;">
+          <div class="alert-safe-title">☪️ ${lang==='my'?'Logo/Sijil Halal Dikesan':'Halal Logo / Certification Detected'}</div>
+          <p style="font-size:0.72rem;color:var(--text2);">${lang==='my'?'Produk ini kelihatan mempunyai pensijilan Halal (JAKIM/MS1500 atau setara). Sentiasa semak logo halal rasmi pada label.':'This product appears to have Halal certification (JAKIM/MS1500 or equivalent). Always verify the official halal logo on the label.'}</p>
+        </div>`;
+    }
+
     if(found.length > 0) {
-      // Group by type
       const definite = found.filter(f => ['pork','alcohol','haram','drug'].includes(f.type));
       const caution = found.filter(f => ['check','alcohol_check'].includes(f.type));
-      const veg = found.filter(f => f.type === 'veg' && !definite.find(d => d.name === f.name));
+      const vegOnly = found.filter(f => f.type === 'veg' && !definite.find(d => d.name === f.name));
 
       if(definite.length > 0) {
         const names = definite.map(f => f.name).join(', ');
@@ -986,22 +1014,22 @@ function runCheck(rawText) {
           </div>`;
       }
 
-      if(veg.length > 0) {
+      if(vegOnly.length > 0) {
         haramBox.innerHTML += `
           <div class="card" style="border-color:rgba(56,189,248,0.3);">
             <div style="font-family:var(--disp);font-size:0.9rem;font-weight:800;color:var(--sky);margin-bottom:8px;">🌿 ${lang==='my'?'Bukan Mesra Vegetarian':'Not Vegetarian-Friendly'}</div>
-            <div class="found-items">${veg.map(f=>`<span class="badge b-blue">${f.name}</span>`).join('')}</div>
+            <div class="found-items">${vegOnly.map(f=>`<span class="badge b-blue">${f.name}</span>`).join('')}</div>
           </div>`;
       }
-    } else {
-      haramBox.innerHTML = `
+    } else if(!halalCertified) {
+      haramBox.innerHTML += `
         <div class="alert-safe">
           <div class="alert-safe-title">✅ ${lang==='my'?'Tiada Bahan Berbahaya Dikesan':'No Harmful Ingredients Detected'}</div>
-          <p style="font-size:0.72rem;color:var(--text2);">${lang==='my'?'Bahan-bahan yang dimasukkan tidak mengandungi kod E berbahaya, derivatif babi, alkohol atau bahan terkawal yang dikenal pasti. Sentiasa semak label asal untuk pengesahan.':'No known harmful E-codes, pork derivatives, alcohol or controlled substances detected in the entered ingredients. Always verify the original product label.'}</p>
+          <p style="font-size:0.72rem;color:var(--text2);">${lang==='my'?'Bahan-bahan yang dimasukkan tidak mengandungi kod E berbahaya, derivatif babi, alkohol atau bahan terkawal yang dikenal pasti. Sentiasa semak label asal untuk pengesahan.':'No known harmful E-codes, pork derivatives, alcohol or controlled substances detected. Always verify the original product label.'}</p>
         </div>`;
     }
 
-    // Set search links with the ingredient text as query
+    // Set search links
     const q = rawText.substring(0, 120);
     const prompt = `Is this product halal? Check these ingredients for pork, alcohol, E-codes: ${q}. Is it safe for Muslims and vegetarians?`;
     const enc = encodeURIComponent(prompt);
@@ -1014,7 +1042,7 @@ function runCheck(rawText) {
 
     document.getElementById('infoResult').classList.add('on');
     setTimeout(() => document.getElementById('infoResult').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-  }, 500);
+  }, 400);
 }
 
 function onInfoPhoto(e) {
@@ -1024,11 +1052,51 @@ function onInfoPhoto(e) {
     const img = document.getElementById('infoPhotoPreview');
     img.src = ev.target.result; img.style.display = 'block';
     document.getElementById('pcbPh').style.display = 'none';
-    // Prompt user to also type ingredients for checking
-    document.getElementById('ingText').placeholder = lang==='my'
-      ? 'Taip bahan-bahan dari gambar di atas untuk semak...'
-      : 'Type the ingredients from the photo above to check...';
-    document.getElementById('ingText').focus();
+
+    // Run OCR via Tesseract.js
+    const loader = document.getElementById('infoLoader');
+    const spinTxt = document.getElementById('t-infoLoading');
+    loader.classList.add('on');
+    spinTxt.textContent = lang==='my' ? '📷 Membaca teks dari gambar...' : '📷 Reading text from photo...';
+    document.getElementById('infoResult').classList.remove('on');
+
+    if(typeof Tesseract !== 'undefined') {
+      Tesseract.recognize(ev.target.result, 'eng+msa', {
+        logger: m => {
+          if(m.status === 'recognizing text') {
+            spinTxt.textContent = (lang==='my' ? '📷 Menganalisis... ' : '📷 Scanning... ') + Math.round((m.progress||0)*100) + '%';
+          }
+        }
+      }).then(({ data: { text } }) => {
+        loader.classList.remove('on');
+        const cleaned = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+        if(cleaned.length > 5) {
+          document.getElementById('ingText').value = cleaned;
+          spinTxt.textContent = lang==='my' ? 'Sedang semak bahan...' : 'Checking ingredients...';
+          runCheck(cleaned);
+        } else {
+          loader.classList.remove('on');
+          document.getElementById('ingText').placeholder = lang==='my'
+            ? 'Teks tidak dapat dibaca — taip bahan secara manual...'
+            : 'Text not readable — type ingredients manually...';
+          document.getElementById('ingText').focus();
+          alert(lang==='my' ? 'Teks tidak dapat dibaca dari gambar. Sila taip bahan secara manual.' : 'Could not read text from photo. Please type ingredients manually.');
+        }
+      }).catch(() => {
+        loader.classList.remove('on');
+        document.getElementById('ingText').placeholder = lang==='my'
+          ? 'OCR gagal — taip bahan secara manual...'
+          : 'OCR failed — type ingredients manually...';
+        document.getElementById('ingText').focus();
+      });
+    } else {
+      loader.classList.remove('on');
+      document.getElementById('ingText').placeholder = lang==='my'
+        ? 'Taip bahan-bahan dari gambar di atas untuk semak...'
+        : 'Type the ingredients from the photo above to check...';
+      document.getElementById('ingText').focus();
+      alert(lang==='my' ? 'Perpustakaan OCR tidak dimuatkan. Sila taip bahan secara manual.' : 'OCR library not loaded. Please type ingredients manually.');
+    }
   };
   reader.readAsDataURL(f);
 }
