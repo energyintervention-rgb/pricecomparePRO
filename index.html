@@ -290,27 +290,38 @@
       <canvas id="info-canvas" style="display:none;"></canvas>
       <div class="info-cam-status" id="info-cam-status"></div>
       <img id="info-photo-preview" class="info-photo-preview">
-      <div style="display:flex;gap:8px;">
+      <div class="info-btn-row">
         <button class="btn btn-primary" id="info-photo-btn" onclick="toggleInfoCamera()" style="flex:1;">📷 Start Camera</button>
-        <button class="btn btn-outline" id="info-capture-btn" onclick="captureInfoPhoto()" style="flex:1;display:none;">⚡ Capture</button>
+        <button class="btn btn-outline" id="info-capture-btn" onclick="captureInfoPhoto()" style="flex:0 0 auto;padding:10px 16px;display:none;">⚡ Capture</button>
       </div>
       <div id="halal-result" class="halal-result"></div>
     </div>
 
     <!-- Manual ingredient check -->
     <div class="info-card">
-      <div class="info-section-title">✍️ Type Ingredients to Check</div>
-      <textarea class="ingredient-input" id="ingredient-input" placeholder="Paste or type ingredients list here e.g. Water, Sugar, E471, Gelatin, E120..."></textarea>
-      <button class="btn btn-primary" style="margin-top:8px;" onclick="checkIngredients()">Check Halal Status</button>
+      <div class="info-section-title">✍️ Type or Paste Ingredients</div>
+      <textarea class="ingredient-input" id="ingredient-input" placeholder="e.g. Water, Sugar, E471, Gelatin, E120, Carmine..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-primary" style="flex:1;margin-bottom:0;" onclick="checkIngredients()">Check Halal</button>
+        <button class="btn btn-outline" style="flex:0 0 auto;padding:10px 12px;margin-bottom:0;" onclick="document.getElementById('ingredient-input').value='';document.getElementById('halal-result').style.display='none';">✕</button>
+      </div>
+      <!-- Common E-codes quick select -->
+      <div style="margin-top:10px;">
+        <div style="font-size:0.58rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Quick Check Common E-Codes</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="ecode-pills"></div>
+      </div>
     </div>
 
     <!-- Search section -->
     <div class="info-card">
       <div class="info-section-title">🔎 Search Product Info</div>
-      <input type="text" id="search-product-input" placeholder="e.g. Milo, Maggi Mee, Pocky..." style="margin-bottom:8px;">
-      <button class="search-btn" onclick="searchProduct('halal ingredients vegetarian')">🔍 Search Halal + Ingredients</button>
-      <button class="search-btn" style="background:#34A853; margin-top:6px;" onclick="searchProduct('vegetarian vegan')">🌱 Search Vegetarian Info</button>
-      <button class="search-btn" style="background:#EA4335; margin-top:6px;" onclick="searchProduct('e-code ingredients list')">🧪 Search E-Codes + Ingredients</button>
+      <input type="text" id="search-product-input" placeholder="e.g. Milo, Maggi Mee, Pocky..." style="margin-bottom:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="search-btn" onclick="searchProduct('halal ingredients')">🔍 Halal Info</button>
+        <button class="search-btn" style="background:#34A853;" onclick="searchProduct('vegetarian vegan ingredients')">🌱 Vegetarian</button>
+        <button class="search-btn" style="background:#EA4335;" onclick="searchProduct('e-code number ingredients')">🧪 E-Codes</button>
+        <button class="search-btn" style="background:#8E44AD;" onclick="searchProduct('nutrition facts calories')">📊 Nutrition</button>
+      </div>
     </div>
   </div></div>
 
@@ -652,6 +663,8 @@
 
   // ============ SURVEY FUNCTIONS ============
   let currentPhotoData = null;
+  let infoCamStream = null;
+  let infoCamActive = false;
 
   function compressImage(dataUrl, maxWidth, quality, callback) {
     const img = new Image();
@@ -958,6 +971,16 @@
       infoTab: 'Info',
       infoPhotoBtn: 'Ambil Foto Label',
       infoSearchPlaceholder: 'cth. Milo, Maggi Mee...',
+      infoStartCam: 'Mula Kamera',
+      infoCapture: 'Tangkap',
+      infoStopCam: 'Henti Kamera',
+      infoCheckHalal: 'Semak Status Halal',
+      infoIngredientPlaceholder: 'cth. Air, Gula, E471, Gelatin, E120...',
+      infoScanTitle: 'Imbas Label Bahan',
+      infoTypeTitle: 'Taip atau Tampal Bahan',
+      infoSearchTitle: 'Cari Maklumat Produk',
+      infoQuickCodes: 'Semak E-Kod Biasa',
+      infoSearchInputPlaceholder: 'cth. Milo, Maggi Mee, Pocky...',
     },
     en: {
       appName: 'BestBuy 🛒',
@@ -1012,6 +1035,16 @@
       infoTab: 'Info',
       infoPhotoBtn: 'Take Photo of Label',
       infoSearchPlaceholder: 'e.g. Milo, Maggi Mee...',
+      infoStartCam: 'Start Camera',
+      infoCapture: 'Capture',
+      infoStopCam: 'Stop Camera',
+      infoCheckHalal: 'Check Halal Status',
+      infoIngredientPlaceholder: 'e.g. Water, Sugar, E471, Gelatin, E120...',
+      infoScanTitle: 'Scan Ingredients Label',
+      infoTypeTitle: 'Type or Paste Ingredients',
+      infoSearchTitle: 'Search Product Info',
+      infoQuickCodes: 'Quick Check Common E-Codes',
+      infoSearchInputPlaceholder: 'e.g. Milo, Maggi Mee, Pocky...',
     }
   };
   let lang = 'my';
@@ -1038,7 +1071,18 @@
     const infoPhotoBtn = document.getElementById('info-photo-btn');
     if (infoPhotoBtn) infoPhotoBtn.textContent = t.infoPhotoBtn || 'Take Photo of Label';
     const searchInput = document.getElementById('search-product-input');
-    if (searchInput) searchInput.placeholder = t.infoSearchPlaceholder || 'e.g. Milo...';
+    if (searchInput) searchInput.placeholder = t.infoSearchInputPlaceholder || 'e.g. Milo...';
+    const infoIngInput = document.getElementById('ingredient-input');
+    if (infoIngInput) infoIngInput.placeholder = t.infoIngredientPlaceholder || 'e.g. Water, Sugar, E471...';
+    const startCamBtn = document.getElementById('info-photo-btn');
+    if (startCamBtn && !infoCamActive) startCamBtn.textContent = t.infoStartCam || 'Start Camera';
+    const captureBtn = document.getElementById('info-capture-btn');
+    if (captureBtn) captureBtn.textContent = t.infoCapture || 'Capture';
+    // Update section titles
+    const infoTitles = document.querySelectorAll('#tab-info .info-section-title');
+    if (infoTitles[0]) infoTitles[0].textContent = t.infoScanTitle || 'Scan Ingredients Label';
+    if (infoTitles[1]) infoTitles[1].textContent = t.infoTypeTitle || 'Type or Paste Ingredients';
+    if (infoTitles[2]) infoTitles[2].textContent = t.infoSearchTitle || 'Search Product Info';
     // Verdict label
     const verdictLabel = document.querySelector('.verdict-label');
     if (verdictLabel) verdictLabel.textContent = t.bestValue;
@@ -1084,6 +1128,7 @@
 
   addItem();
   addItem();
+  buildEcodePills();
 
   // Set default language to Malay on load
   setLang('my');
@@ -1292,9 +1337,6 @@
     }
   }
 
-  let infoCamStream = null;
-  let infoCamActive = false;
-
   async function toggleInfoCamera() {
     const btn = document.getElementById('info-photo-btn');
     const capBtn = document.getElementById('info-capture-btn');
@@ -1418,6 +1460,25 @@
       if (status) status.textContent = '';
       resultEl.innerHTML = '<div class="halal-title">\u26A0\uFE0F Offline or error</div><div style="font-size:0.68rem;color:var(--text2);">Type ingredients manually and tap Check below.</div>';
     }
+  }
+
+  // Build E-code quick select pills
+  function buildEcodePills() {
+    const container = document.getElementById('ecode-pills');
+    if (!container) return;
+    const codes = ['E120','E441','E471','E481','E482','E570','E422','E904','E631','E635','E322','E542'];
+    container.innerHTML = '';
+    codes.forEach(function(code) {
+      const btn = document.createElement('button');
+      btn.style.cssText = 'padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:0.62rem;cursor:pointer;font-family:DM Mono,monospace;';
+      btn.textContent = code;
+      btn.onclick = function() {
+        const inp = document.getElementById('ingredient-input');
+        inp.value = (inp.value ? inp.value + ', ' : '') + code;
+        inp.style.borderColor = 'var(--gold)';
+      };
+      container.appendChild(btn);
+    });
   }
 
   function searchProduct(suffix) {
