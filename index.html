@@ -277,52 +277,55 @@
 
 
   <div id="tab-info" class="section">
-    <!-- Photo scan section -->
+
+    <!-- SCAN SECTION -->
     <div class="info-card">
-      <div class="info-section-title">📷 Scan Ingredients Label</div>
-      <div class="info-cam-wrap" id="info-cam-wrap">
+      <div class="info-section-title" id="info-title-scan">📷 Imbas Label Bahan</div>
+      <div class="info-scanner-wrap" id="info-cam-wrap">
         <video id="info-cam-video" autoplay playsinline muted></video>
-        <div class="info-cam-overlay">
-          <div class="info-scan-frame"><div class="info-scan-line"></div></div>
-          <div class="info-scan-hint">Point at ingredients text — hold steady</div>
+        <div class="info-scanner-overlay">
+          <div class="info-scanner-frame"><div class="info-scanner-line"></div></div>
+          <div class="info-scanner-hint" id="info-scan-hint">Halakan ke teks bahan — tahan diam</div>
         </div>
       </div>
       <canvas id="info-canvas" style="display:none;"></canvas>
-      <div class="info-cam-status" id="info-cam-status"></div>
       <img id="info-photo-preview" class="info-photo-preview">
+      <div class="info-cam-status" id="info-cam-status"></div>
       <div class="info-btn-row">
-        <button class="btn btn-primary" id="info-photo-btn" onclick="toggleInfoCamera()" style="flex:1;">📷 Start Camera</button>
-        <button class="btn btn-outline" id="info-capture-btn" onclick="captureInfoPhoto()" style="flex:0 0 auto;padding:10px 16px;display:none;">⚡ Capture</button>
+        <button class="btn btn-primary" id="info-photo-btn" onclick="toggleInfoCamera()" style="margin-bottom:0;flex:1;">
+          📷 <span id="info-cam-btn-text">Mula Kamera</span>
+        </button>
+        <button class="btn btn-outline" id="info-capture-btn" onclick="captureInfoPhoto()" style="display:none;margin-bottom:0;padding:10px 16px;flex-shrink:0;">⚡</button>
       </div>
       <div id="halal-result" class="halal-result"></div>
     </div>
 
-    <!-- Manual ingredient check -->
+    <!-- INGREDIENT INPUT -->
     <div class="info-card">
-      <div class="info-section-title">✍️ Type or Paste Ingredients</div>
-      <textarea class="ingredient-input" id="ingredient-input" placeholder="e.g. Water, Sugar, E471, Gelatin, E120, Carmine..."></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="btn btn-primary" style="flex:1;margin-bottom:0;" onclick="checkIngredients()">Check Halal</button>
-        <button class="btn btn-outline" style="flex:0 0 auto;padding:10px 12px;margin-bottom:0;" onclick="document.getElementById('ingredient-input').value='';document.getElementById('halal-result').style.display='none';">✕</button>
+      <div class="info-section-title" id="info-title-type">✍️ Taip atau Tampal Bahan</div>
+      <textarea class="ingredient-input" id="ingredient-input" placeholder="cth. Air, Gula, E471, Gelatin, E120..."></textarea>
+      <div class="info-btn-row" style="margin-top:8px;">
+        <button class="btn btn-primary" onclick="checkIngredients()" id="info-check-btn" style="margin-bottom:0;flex:1;">Semak Halal</button>
+        <button class="btn btn-outline" onclick="resetIngredients()" id="info-reset-btn" style="margin-bottom:0;flex-shrink:0;padding:10px 14px;font-size:0.7rem;">Reset</button>
       </div>
-      <!-- Common E-codes quick select -->
       <div style="margin-top:10px;">
-        <div style="font-size:0.58rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Quick Check Common E-Codes</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="ecode-pills"></div>
+        <div class="info-ecode-label" id="info-ecode-label">SEMAK E-KOD BIASA — SWIPE →</div>
+        <div class="info-ecode-scroll" id="ecode-scroll"></div>
       </div>
     </div>
 
-    <!-- Search section -->
+    <!-- SEARCH -->
     <div class="info-card">
-      <div class="info-section-title">🔎 Search Product Info</div>
-      <input type="text" id="search-product-input" placeholder="e.g. Milo, Maggi Mee, Pocky..." style="margin-bottom:10px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="search-btn" onclick="searchProduct('halal ingredients')">🔍 Halal Info</button>
-        <button class="search-btn" style="background:#34A853;" onclick="searchProduct('vegetarian vegan ingredients')">🌱 Vegetarian</button>
-        <button class="search-btn" style="background:#EA4335;" onclick="searchProduct('e-code number ingredients')">🧪 E-Codes</button>
-        <button class="search-btn" style="background:#8E44AD;" onclick="searchProduct('nutrition facts calories')">📊 Nutrition</button>
+      <div class="info-section-title" id="info-title-search">🔎 Cari Maklumat Produk</div>
+      <input type="text" id="search-product-input" placeholder="cth. Milo, Maggi Mee..." style="margin-bottom:8px;">
+      <div class="info-search-grid">
+        <button class="info-search-btn blue" onclick="searchProduct('halal ingredients')">🔍 <span id="s1">Halal Info</span></button>
+        <button class="info-search-btn green" onclick="searchProduct('vegetarian vegan ingredients')">🌱 <span id="s2">Vegetarian</span></button>
+        <button class="info-search-btn red" onclick="searchProduct('e-code number ingredients list')">🧪 <span id="s3">E-Kod</span></button>
+        <button class="info-search-btn purple" onclick="searchProduct('nutrition facts calories')">📊 <span id="s4">Nutrisi</span></button>
       </div>
     </div>
+
   </div></div>
 
   <nav class="bottom-nav">
@@ -980,7 +983,13 @@
       infoTypeTitle: 'Taip atau Tampal Bahan',
       infoSearchTitle: 'Cari Maklumat Produk',
       infoQuickCodes: 'Semak E-Kod Biasa',
-      infoSearchInputPlaceholder: 'cth. Milo, Maggi Mee, Pocky...',
+      infoSearchInputPlaceholder: 'cth. Milo, Maggi Mee...',
+      infoScanHint: 'Halakan ke teks bahan — tahan diam',
+      infoReset: 'Reset',
+      infoS1: 'Halal Info',
+      infoS2: 'Vegetarian',
+      infoS3: 'E-Kod',
+      infoS4: 'Nutrisi',
     },
     en: {
       appName: 'BestBuy 🛒',
@@ -1044,7 +1053,13 @@
       infoTypeTitle: 'Type or Paste Ingredients',
       infoSearchTitle: 'Search Product Info',
       infoQuickCodes: 'Quick Check Common E-Codes',
-      infoSearchInputPlaceholder: 'e.g. Milo, Maggi Mee, Pocky...',
+      infoSearchInputPlaceholder: 'e.g. Milo, Maggi Mee...',
+      infoScanHint: 'Point at ingredients text — hold steady',
+      infoReset: 'Reset',
+      infoS1: 'Halal Info',
+      infoS2: 'Vegetarian',
+      infoS3: 'E-Codes',
+      infoS4: 'Nutrition',
     }
   };
   let lang = 'my';
@@ -1068,21 +1083,33 @@
     document.querySelectorAll('.bnav-label')[2].textContent = t.history;
     if (document.querySelectorAll('.bnav-label')[3]) document.querySelectorAll('.bnav-label')[3].textContent = t.surveyTab || 'Survey';
     if (document.querySelectorAll('.bnav-label')[4]) document.querySelectorAll('.bnav-label')[4].textContent = t.infoTab || 'Info';
-    const infoPhotoBtn = document.getElementById('info-photo-btn');
-    if (infoPhotoBtn) infoPhotoBtn.textContent = t.infoPhotoBtn || 'Take Photo of Label';
-    const searchInput = document.getElementById('search-product-input');
-    if (searchInput) searchInput.placeholder = t.infoSearchInputPlaceholder || 'e.g. Milo...';
+    // Info page lang
+    const infoCamBtnText = document.getElementById('info-cam-btn-text');
+    if (infoCamBtnText && !infoCamActive) infoCamBtnText.textContent = t.infoStartCam || 'Start Camera';
+    const infoScanHint = document.getElementById('info-scan-hint');
+    if (infoScanHint) infoScanHint.textContent = t.infoScanHint || 'Point at ingredients text — hold steady';
     const infoIngInput = document.getElementById('ingredient-input');
     if (infoIngInput) infoIngInput.placeholder = t.infoIngredientPlaceholder || 'e.g. Water, Sugar, E471...';
-    const startCamBtn = document.getElementById('info-photo-btn');
-    if (startCamBtn && !infoCamActive) startCamBtn.textContent = t.infoStartCam || 'Start Camera';
-    const captureBtn = document.getElementById('info-capture-btn');
-    if (captureBtn) captureBtn.textContent = t.infoCapture || 'Capture';
-    // Update section titles
-    const infoTitles = document.querySelectorAll('#tab-info .info-section-title');
-    if (infoTitles[0]) infoTitles[0].textContent = t.infoScanTitle || 'Scan Ingredients Label';
-    if (infoTitles[1]) infoTitles[1].textContent = t.infoTypeTitle || 'Type or Paste Ingredients';
-    if (infoTitles[2]) infoTitles[2].textContent = t.infoSearchTitle || 'Search Product Info';
+    const infoCheckBtn = document.getElementById('info-check-btn');
+    if (infoCheckBtn) infoCheckBtn.textContent = t.infoCheckHalal || 'Check Halal';
+    const infoResetBtn = document.getElementById('info-reset-btn');
+    if (infoResetBtn) infoResetBtn.textContent = t.infoReset || 'Reset';
+    const infoEcodeLabel = document.getElementById('info-ecode-label');
+    if (infoEcodeLabel) infoEcodeLabel.textContent = t.infoQuickCodes || 'COMMON E-CODES';
+    const searchInput = document.getElementById('search-product-input');
+    if (searchInput) searchInput.placeholder = t.infoSearchInputPlaceholder || 'e.g. Milo...';
+    // Section titles
+    const infoT1 = document.getElementById('info-title-scan');
+    if (infoT1) infoT1.textContent = '📷 ' + (t.infoScanTitle || 'Scan Ingredients Label');
+    const infoT2 = document.getElementById('info-title-type');
+    if (infoT2) infoT2.textContent = '✍️ ' + (t.infoTypeTitle || 'Type or Paste Ingredients');
+    const infoT3 = document.getElementById('info-title-search');
+    if (infoT3) infoT3.textContent = '🔎 ' + (t.infoSearchTitle || 'Search Product Info');
+    // Search buttons
+    const s1 = document.getElementById('s1'); if (s1) s1.textContent = t.infoS1 || 'Halal Info';
+    const s2 = document.getElementById('s2'); if (s2) s2.textContent = t.infoS2 || 'Vegetarian';
+    const s3 = document.getElementById('s3'); if (s3) s3.textContent = t.infoS3 || 'E-Codes';
+    const s4 = document.getElementById('s4'); if (s4) s4.textContent = t.infoS4 || 'Nutrition';
     // Verdict label
     const verdictLabel = document.querySelector('.verdict-label');
     if (verdictLabel) verdictLabel.textContent = t.bestValue;
@@ -1426,59 +1453,98 @@
     const status = document.getElementById('info-cam-status');
     resultEl.style.display = 'block';
     resultEl.className = 'halal-result halal-check';
-    resultEl.innerHTML = '<div class="halal-title">\u23F3 Reading label with AI...</div>';
-    if (status) status.textContent = 'Analysing...';
+    resultEl.innerHTML = '<div class="halal-title" style="display:flex;align-items:center;gap:8px;"><span style="animation:spin 1s linear infinite;display:inline-block;">⏳</span> Membaca label...</div>';
+    if (status) status.textContent = 'AI sedang menganalisis...';
+
+    // Detect media type from data URL
+    const mimeMatch = base64img.match(/data:(image\/[a-z]+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const base64data = base64img.split(',')[1];
 
     try {
-      const base64data = base64img.split(',')[1];
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 800,
+          max_tokens: 1000,
           messages: [{
             role: 'user',
             content: [
-              { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64data } },
-              { type: 'text', text: 'Extract ONLY the ingredients/bahan-bahan list from this food label. Return just the raw ingredients text, comma separated. If none visible, reply: NO_INGREDIENTS_FOUND' }
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mimeType, data: base64data }
+              },
+              {
+                type: 'text',
+                text: 'Look at this food/product label image. Find the INGREDIENTS or BAHAN-BAHAN section. Extract ALL ingredients listed, exactly as written. Return ONLY the ingredients as a comma-separated list. Do not include any other text, headings, or explanation. If you cannot find any ingredients list, reply exactly: NO_INGREDIENTS_FOUND'
+              }
             ]
           }]
         })
       });
+
+      if (!response.ok) {
+        throw new Error('API error ' + response.status);
+      }
+
       const data = await response.json();
       const extracted = data.content && data.content[0] ? data.content[0].text.trim() : '';
       if (status) status.textContent = '';
 
-      if (extracted && extracted !== 'NO_INGREDIENTS_FOUND') {
+      if (extracted && extracted !== 'NO_INGREDIENTS_FOUND' && extracted.length > 5) {
         document.getElementById('ingredient-input').value = extracted;
         checkIngredients(extracted);
       } else {
-        resultEl.innerHTML = '<div class="halal-title">Could not read ingredients</div><div style="font-size:0.68rem;color:var(--text2);">Ensure the label text is clear and well-lit. Try typing ingredients manually below.</div>';
+        resultEl.className = 'halal-result halal-check';
+        resultEl.innerHTML = '<div class="halal-title">Teks tidak dapat dibaca</div><div style="font-size:0.68rem;color:var(--text2);margin-top:4px;">Pastikan label jelas dan pencahayaan baik. Cuba taip bahan secara manual di bawah.</div>';
       }
     } catch(e) {
       if (status) status.textContent = '';
-      resultEl.innerHTML = '<div class="halal-title">\u26A0\uFE0F Offline or error</div><div style="font-size:0.68rem;color:var(--text2);">Type ingredients manually and tap Check below.</div>';
+      // Try to do manual check if user already has text
+      const existingText = document.getElementById('ingredient-input').value;
+      if (existingText.trim()) {
+        checkIngredients(existingText);
+      } else {
+        resultEl.className = 'halal-result halal-check';
+        resultEl.innerHTML = '<div class="halal-title">\u26A0\uFE0F Tiada sambungan / Ralat</div><div style="font-size:0.68rem;color:var(--text2);margin-top:4px;">Perlu internet untuk baca label. Taip bahan secara manual dan ketik Semak Halal.</div>';
+      }
     }
   }
 
-  // Build E-code quick select pills
   function buildEcodePills() {
-    const container = document.getElementById('ecode-pills');
+    const container = document.getElementById('ecode-scroll');
     if (!container) return;
-    const codes = ['E120','E441','E471','E481','E482','E570','E422','E904','E631','E635','E322','E542'];
+    const codes = [
+      {code:'E120',warn:true},{code:'E441',warn:true},{code:'E471',warn:true},
+      {code:'E481',warn:true},{code:'E482',warn:true},{code:'E483',warn:true},
+      {code:'E491',warn:true},{code:'E492',warn:true},{code:'E542',warn:true},
+      {code:'E570',warn:true},{code:'E572',warn:true},{code:'E904',warn:true},
+      {code:'E1510',warn:true},{code:'E422',warn:false},{code:'E322',warn:false},
+      {code:'E631',warn:false},{code:'E635',warn:false}
+    ];
     container.innerHTML = '';
-    codes.forEach(function(code) {
+    codes.forEach(function(item) {
       const btn = document.createElement('button');
-      btn.style.cssText = 'padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:0.62rem;cursor:pointer;font-family:DM Mono,monospace;';
-      btn.textContent = code;
+      btn.className = 'info-ecode-chip';
+      btn.textContent = item.code;
+      if (item.warn) btn.style.color = 'var(--orange)';
       btn.onclick = function() {
         const inp = document.getElementById('ingredient-input');
-        inp.value = (inp.value ? inp.value + ', ' : '') + code;
-        inp.style.borderColor = 'var(--gold)';
+        inp.value = (inp.value ? inp.value + ', ' : '') + item.code;
+        inp.focus();
       };
       container.appendChild(btn);
     });
+  }
+
+  function resetIngredients() {
+    document.getElementById('ingredient-input').value = '';
+    const r = document.getElementById('halal-result');
+    r.style.display = 'none';
+    r.innerHTML = '';
+    document.getElementById('info-photo-preview').style.display = 'none';
+    document.getElementById('info-photo-preview').src = '';
   }
 
   function searchProduct(suffix) {
