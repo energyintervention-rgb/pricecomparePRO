@@ -1268,6 +1268,8 @@
   addItem();
   addItem();
   buildEcodePills();
+  // Load halal database
+  loadHalalDB();
 
   // Set default language to Malay on load
   setLang('my');
@@ -1369,107 +1371,145 @@
   }
 
   // ============ HALAL CHECKER ============
-  // E-Code library — updated from CSV data
-  // Range reference: E100-E199 natural colors (plant/mineral), E200-E299 preservatives,
-  // E300-E399 antioxidants (plant), E400-E499 thickeners (plant/seaweed),
-  // E600-E699 flavor enhancers, E900-E999 sweeteners
+  // ============ HALAL DATABASE — loaded from halal-db.json ============
+  let HARAM_LIST = [];
+  let WARN_LIST = [];
+  let AUTHORITY_NOTES = {};
+  let DB_LOADED = false;
+  let DB_VERSION = '1.0';
 
-  const HARAM_LIST = [
-    // From e-code-name-use-10.csv — confirmed non-halal
-    { code: 'E120', name: 'Carmine / Cochineal', reason: 'Insect-derived red colouring' },
-    { code: 'E441', name: 'Gelatin', reason: 'Pig bones/skin' },
-    { code: 'E542', name: 'Bone Phosphate', reason: 'Animal bones, often pork' },
-    { code: 'E904', name: 'Shellac', reason: 'Insect resin' },
-    { code: 'E1510', name: 'Ethanol', reason: 'Alcohol additive — haram' },
-    { code: 'E422', name: 'Glycerol / Glycerin', reason: 'Haram if pig-fat derived' },
-    // E470-E472 emulsifiers
-    { code: 'E470', name: 'Fatty Acid Salts', reason: 'Often pig-fat based' },
-    { code: 'E471', name: 'Mono & Diglycerides', reason: 'Often pig-fat based' },
-    { code: 'E472', name: 'Emulsifiers (E472)', reason: 'Often pig-fat based' },
-    { code: 'E472a', name: 'Acetic Acid Esters', reason: 'Often pig-fat based' },
-    { code: 'E472b', name: 'Lactic Acid Esters', reason: 'Often pig-fat based' },
-    { code: 'E472c', name: 'Citric Acid Esters', reason: 'Often pig-fat based' },
-    { code: 'E472e', name: 'Mono & Diacetyl Tartaric Acid Esters', reason: 'Often pig-fat based' },
-    // E481-E483 stearates
-    { code: 'E481', name: 'Sodium Stearoyl Lactylate', reason: 'Pork fat derivative' },
-    { code: 'E482', name: 'Calcium Stearoyl Lactylate', reason: 'Pork fat derivative' },
-    { code: 'E483', name: 'Stearyl Tartrate', reason: 'Pork fat derivative' },
-    // E491-E495 sorbitan esters
-    { code: 'E491', name: 'Sorbitan Monostearate', reason: 'Can be animal-fat based' },
-    { code: 'E492', name: 'Sorbitan Tristearate', reason: 'Can be animal-fat based' },
-    { code: 'E493', name: 'Sorbitan Monolaurate', reason: 'Can be animal-fat based' },
-    { code: 'E494', name: 'Sorbitan Monooleate', reason: 'Can be animal-fat based' },
-    { code: 'E495', name: 'Sorbitan Monopalmitate', reason: 'Can be animal-fat based' },
-    // E570, E572 stearic acid
-    { code: 'E570', name: 'Stearic Acid', reason: 'Frequently pig-fat derived' },
-    { code: 'E572', name: 'Magnesium Stearate', reason: 'Frequently pig-fat derived' },
-    // Alcohol derivatives (e-code-name-use-5.csv)
-    { code: 'E1505', name: 'Triethyl Citrate', reason: 'Alcohol derivative — check if ethanol-based' },
-    { code: 'E1517', name: 'Glyceryl Diacetate', reason: 'Alcohol derivative — check if ethanol-based' },
-    { code: 'E1518', name: 'Glyceryl Triacetate', reason: 'Alcohol derivative — check if ethanol-based' },
-    // Flavor enhancers — haram if animal-based
-    { code: 'E631', name: 'Disodium Inosinate', reason: 'Haram if from pork or non-halal meat' },
-    { code: 'E635', name: 'Disodium Ribonucleotide', reason: 'Haram if from pork or non-halal meat' },
-    // Non-E-code keywords
-    { code: 'gelatin', name: 'Gelatin', reason: 'Commonly from pig bones/skin' },
-    { code: 'lard', name: 'Lard', reason: 'Pig fat — clearly haram' },
-    { code: 'pork', name: 'Pork', reason: 'Pig meat — haram' },
-    { code: 'pig', name: 'Pig-derived', reason: 'Pig product — haram' },
-    { code: 'swine', name: 'Swine', reason: 'Pig product — haram' },
-    { code: 'bacon', name: 'Bacon', reason: 'Pig meat — haram' },
-    { code: 'ham', name: 'Ham', reason: 'Pig meat — haram' },
-    { code: 'carmine', name: 'Carmine', reason: 'Insect-derived colouring' },
-    { code: 'cochineal', name: 'Cochineal', reason: 'Insect-derived colouring' },
-    { code: 'shellac', name: 'Shellac', reason: 'Insect resin' },
-    { code: 'vanilla extract', name: 'Vanilla Extract', reason: 'Ethanol carrier — may be alcoholic' },
-    { code: 'rum', name: 'Rum flavouring', reason: 'Intoxicating alcohol' },
-    { code: 'brandy', name: 'Brandy', reason: 'Intoxicating alcohol' },
-    { code: 'wine', name: 'Wine', reason: 'Intoxicating alcohol' },
-    { code: 'mirin', name: 'Mirin', reason: 'Alcoholic rice wine' },
-    { code: 'alcohol', name: 'Alcohol', reason: 'Intoxicating substance — haram' },
-    { code: 'ethanol', name: 'Ethanol', reason: 'Direct alcohol — haram' },
-    { code: 'beer', name: 'Beer', reason: 'Alcoholic drink — haram' },
-    { code: 'sake', name: 'Sake', reason: 'Alcoholic rice wine — haram' },
-    { code: 'vodka', name: 'Vodka', reason: 'Alcoholic drink — haram' },
-    { code: 'whisky', name: 'Whisky', reason: 'Alcoholic drink — haram' },
-    { code: 'whiskey', name: 'Whiskey', reason: 'Alcoholic drink — haram' },
-    { code: 'l-cysteine', name: 'L-Cysteine', reason: 'Can be from hog hair or human hair' },
-    { code: 'rennet', name: 'Rennet', reason: 'Check if animal or microbial source' },
+  // Built-in fallback (core haram only — for offline first visit)
+  const FALLBACK_HARAM = [
+    {code:'e120',name:'Carmine / Cochineal',reason:'Insect-derived red dye',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'e441',name:'Gelatin',reason:'Often pig-derived unless halal-certified',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'e542',name:'Bone Phosphate',reason:'Animal bones, often pork',src:'JAKIM, IFANCA, HFA'},
+    {code:'e904',name:'Shellac',reason:'Insect resin',src:'JAKIM, MUIS'},
+    {code:'e1510',name:'Ethanol',reason:'Alcohol additive — haram',src:'JAKIM, MUIS, HFA, IFANCA'},
+    {code:'e481',name:'Sodium Stearoyl Lactylate',reason:'Pork fat derivative',src:'JAKIM, IFANCA'},
+    {code:'e482',name:'Calcium Stearoyl Lactylate',reason:'Pork fat derivative',src:'JAKIM, IFANCA'},
+    {code:'e570',name:'Stearic Acid',reason:'Pig-fat derived',src:'JAKIM, IFANCA'},
+    {code:'e572',name:'Magnesium Stearate',reason:'Pig-fat derived',src:'JAKIM, IFANCA'},
+    {code:'gelatin',name:'Gelatin',reason:'Pig bones/skin',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'lard',name:'Lard',reason:'Pig fat',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'pork',name:'Pork',reason:'Pig meat — haram',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'alcohol',name:'Alcohol',reason:'Intoxicating substance',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'ethanol',name:'Ethanol',reason:'Direct alcohol',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'carmine',name:'Carmine',reason:'Insect-derived',src:'JAKIM, IFANCA, MUIS'},
+    {code:'shellac',name:'Shellac',reason:'Insect resin',src:'JAKIM, MUIS'},
+    {code:'wine',name:'Wine',reason:'Alcoholic',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'beer',name:'Beer',reason:'Alcoholic',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+  ];
+  const FALLBACK_WARN = [
+    {code:'e471',name:'Mono & Diglycerides',note:'Halal only if plant-based',src:'JAKIM, IFANCA, HFA, MUIS, MUI'},
+    {code:'e322',name:'Lecithin',note:'Halal only if soy-based',src:'JAKIM, IFANCA, HFA'},
+    {code:'e422',name:'Glycerol/Glycerin',note:'Halal only if plant-based',src:'JAKIM, IFANCA, MUIS, MUI'},
+    {code:'e920',name:'L-Cysteine',note:'Check source — hog hair possible',src:'JAKIM, MUIS, MUI'},
+    {code:'e631',name:'Disodium Inosinate',note:'Halal only if plant-based',src:'JAKIM, IFANCA'},
+    {code:'e635',name:'Disodium Ribonucleotide',note:'Halal only if plant-based',src:'JAKIM, IFANCA'},
+    {code:'rennet',name:'Rennet',note:'Halal only if microbial/vegetable',src:'JAKIM'},
+    {code:'whey',name:'Whey',note:'Check halal-slaughtered source',src:'JAKIM'},
+    {code:'vanilla extract',name:'Vanilla Extract',note:'Check ethanol concentration',src:'JAKIM'},
   ];
 
-  // Mushbooh (Doubtful) — cross-referenced from IFANCA, HFA, MUIS, MUI
-  // Sources: authority-haram-non-halal-4.csv
-  const WARN_LIST = [
-    // Confirmed doubtful by ALL 4 authorities
-    { code: 'E471', name: 'Mono & Diglycerides', note: 'Doubtful — IFANCA, HFA, MUIS, MUI all flag this. Halal only if plant-based' },
-    { code: 'E322', name: 'Lecithin', note: 'Doubtful — IFANCA & HFA flag this. Halal only if soy-based' },
-    { code: 'E422', name: 'Glycerin', note: 'Doubtful — IFANCA, MUIS, MUI flag this. Halal only if plant-based' },
-    { code: 'E631', name: 'Disodium Inosinate', note: 'Doubtful — IFANCA flags this. Halal only if plant-based' },
-    { code: 'E635', name: 'Disodium Ribonucleotide', note: 'Doubtful — IFANCA flags this. Halal only if plant-based' },
-    // MUIS flags E470-E475 range
-    { code: 'E470', name: 'Fatty Acid Salts (E470)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
-    { code: 'E472', name: 'Emulsifiers (E472)', note: 'Doubtful — MUIS flags this. Check if pig-fat based' },
-    { code: 'E473', name: 'Sucrose Esters (E473)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
-    { code: 'E474', name: 'Sucroglycerides (E474)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
-    { code: 'E475', name: 'Polyglycerol Esters (E475)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
-    // HFA specific flags
-    { code: 'E101', name: 'Riboflavin (E101)', note: 'Doubtful — HFA flags as source-dependent' },
-    { code: 'E140', name: 'Chlorophyll (E140)', note: 'Doubtful — HFA flags solvent issue' },
-    { code: 'E141', name: 'Copper Chlorophyllin (E141)', note: 'Doubtful — HFA flags solvent issue' },
-    // MUIS & MUI flag L-Cysteine
-    { code: 'E920', name: 'L-Cysteine (E920)', note: 'Doubtful — MUIS & MUI flag this. Can be from hog hair' },
-    { code: 'L-cysteine', name: 'L-Cysteine', note: 'Doubtful — check source, can be hog hair or human hair' },
-    // MUI alcohol derivatives
-    { code: 'E1505', name: 'Triethyl Citrate', note: 'Doubtful — MUI: synthetic ethanol may be allowed under thresholds' },
-    { code: 'E1517', name: 'Glyceryl Diacetate', note: 'Doubtful — MUI: check if synthetic or khamr-derived' },
-    { code: 'E1518', name: 'Glyceryl Triacetate', note: 'Doubtful — MUI: check if synthetic or khamr-derived' },
-    // General doubtful ingredients
-    { code: 'rennet', name: 'Rennet', note: 'Doubtful — halal only if microbial or vegetable source' },
-    { code: 'whey', name: 'Whey', note: 'Doubtful — check if from halal-slaughtered animal' },
-    { code: 'casein', name: 'Casein', note: 'Doubtful — check animal source' },
-    { code: 'mono-diglycerides', name: 'Mono-Diglycerides', note: 'Doubtful — halal only if plant-based' },
-    { code: 'glycerides', name: 'Glycerides', note: 'Doubtful — check if plant or animal source' },
-  ];
+  async function loadHalalDB() {
+    // Try loading from JSON file
+    try {
+      const resp = await fetch('./halal-db.json?v=' + Date.now());
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const db = await resp.json();
+
+      // Map haram list
+      HARAM_LIST = db.haram.map(function(item) {
+        return {
+          code: item.code,
+          name: item.name,
+          reason: item.reason,
+          src: item.src,
+          cat: item.cat
+        };
+      });
+
+      // Map warn list
+      WARN_LIST = db.warn.map(function(item) {
+        return {
+          code: item.code,
+          name: item.name,
+          note: item.note,
+          src: item.src,
+          cat: item.cat
+        };
+      });
+
+      // Build authority notes lookup
+      AUTHORITY_NOTES = {};
+      db.haram.forEach(function(item) {
+        const key = item.code.toUpperCase();
+        AUTHORITY_NOTES[key] = { status: 'Haram', src: item.src };
+      });
+      db.warn.forEach(function(item) {
+        const key = item.code.toUpperCase();
+        AUTHORITY_NOTES[key] = { status: 'Mushbooh', src: item.src };
+      });
+
+      DB_LOADED = true;
+      DB_VERSION = db.version || '2.0';
+
+      // Build dropdown from JSON
+      buildDropdownFromDB(db.dropdown);
+
+      console.log('Jimat DB v' + DB_VERSION + ' loaded: ' + HARAM_LIST.length + ' haram, ' + WARN_LIST.length + ' mushbooh');
+
+      // Cache in service worker
+      if ('caches' in window) {
+        caches.open('jimat-v1').then(function(cache) {
+          cache.add('./halal-db.json').catch(function(){});
+        });
+      }
+
+    } catch(e) {
+      // Fallback to built-in lists
+      console.log('DB fetch failed, using fallback:', e.message);
+      HARAM_LIST = FALLBACK_HARAM;
+      WARN_LIST = FALLBACK_WARN;
+      // Keep existing dropdown
+    }
+  }
+
+  function buildDropdownFromDB(dropdown) {
+    const sel = document.getElementById('ecode-select');
+    if (!sel) return;
+    sel.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = lang === 'my' ? '— pilih e-kod —' : '— select e-code —';
+    sel.appendChild(placeholder);
+
+    const groups = [
+      { key: 'haram',      label: '🔴 Haram' },
+      { key: 'emulsifier', label: '🟠 Emulsifier' },
+      { key: 'stearates',  label: '🟠 Stearates' },
+      { key: 'mushbooh',   label: '⚠️ Mushbooh / Semak Sumber' },
+      { key: 'safe',       label: '✅ Selamat / Safe' },
+    ];
+
+    groups.forEach(function(grp) {
+      const items = dropdown[grp.key];
+      if (!items || !items.length) return;
+      const optgrp = document.createElement('optgroup');
+      optgrp.label = grp.label;
+      items.forEach(function(item) {
+        const opt = document.createElement('option');
+        opt.value = item.v;
+        opt.textContent = item.v;
+        optgrp.appendChild(opt);
+      });
+      sel.appendChild(optgrp);
+    });
+  }
+
+  // Also keep ECODE_DESC for backward compatibility
+  const ECODE_DESC = {};
 
   function checkIngredients(text) {
     const input = text || document.getElementById('ingredient-input').value;
@@ -1502,39 +1542,7 @@
 
   // Authority reference — for showing which authority flags what
   // Authority sources — JAKIM = Malaysia, IFANCA = USA, HFA = UK, MUIS = Singapore, MUI = Indonesia
-  const AUTHORITY_NOTES = {
-    // Haram — confirmed by authorities
-    'E120':  { status: 'Haram',     src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
-    'E441':  { status: 'Haram',     src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
-    'E542':  { status: 'Haram',     src: 'JAKIM, IFANCA, HFA' },
-    'E904':  { status: 'Haram',     src: 'JAKIM, MUIS' },
-    'E1510': { status: 'Haram',     src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
-    'E1505': { status: 'Haram',     src: 'JAKIM, MUI' },
-    'E1517': { status: 'Haram',     src: 'JAKIM, MUI' },
-    'E1518': { status: 'Haram',     src: 'JAKIM, MUI' },
-    'E470':  { status: 'Haram',     src: 'JAKIM, MUIS' },
-    'E472':  { status: 'Haram',     src: 'JAKIM, MUIS, MUI' },
-    'E481':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E482':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E483':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E491':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E492':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E493':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E494':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E495':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E570':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    'E572':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
-    // Mushbooh — doubtful
-    'E471':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
-    'E322':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA, HFA' },
-    'E422':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA, MUIS, MUI' },
-    'E631':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA' },
-    'E635':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA' },
-    'E920':  { status: 'Mushbooh',  src: 'JAKIM, MUIS, MUI' },
-    'E101':  { status: 'Mushbooh',  src: 'HFA' },
-    'E140':  { status: 'Mushbooh',  src: 'HFA' },
-    'E141':  { status: 'Mushbooh',  src: 'HFA' },
-  };
+  // AUTHORITY_NOTES built dynamically from halal-db.json (see loadHalalDB)
 
   function displayHalalResult(found, warnings, unknownText) {
     const resultEl = document.getElementById('halal-result');
@@ -1930,53 +1938,7 @@
   }
 
   // E-code descriptions for result display
-  const ECODE_DESC = {
-    'E120':'Carmine — Pewarna merah dari serangga',
-    'E441':'Gelatin — Dari tulang/kulit babi',
-    'E542':'Bone Phosphate — Tulang haiwan, sering babi',
-    'E904':'Shellac — Resin dari serangga',
-    'E1510':'Ethanol — Alkohol terus',
-    'E1505':'Triethyl Citrate — Derivatif alkohol',
-    'E1517':'Glyceryl Diacetate — Derivatif alkohol',
-    'E1518':'Glyceryl Triacetate — Derivatif alkohol',
-    'E422':'Glycerol/Glycerin — Haram jika lemak babi',
-    'E470':'Fatty Acid Salts — Sering lemak babi',
-    'E471':'Mono & Diglycerides — Sering lemak babi',
-    'E472':'Emulsifiers — Sering lemak babi',
-    'E472a':'Acetic Acid Esters — Semak sumber',
-    'E472b':'Lactic Acid Esters — Semak sumber',
-    'E472c':'Citric Acid Esters — Semak sumber',
-    'E472e':'DATEM — Semak sumber',
-    'E481':'Sodium Stearoyl Lactylate — Lemak babi',
-    'E482':'Calcium Stearoyl Lactylate — Lemak babi',
-    'E483':'Stearyl Tartrate — Lemak babi',
-    'E491':'Sorbitan Monostearate — Boleh dari lemak haiwan',
-    'E492':'Sorbitan Tristearate — Boleh dari lemak haiwan',
-    'E493':'Sorbitan Monolaurate — Boleh dari lemak haiwan',
-    'E494':'Sorbitan Monooleate — Boleh dari lemak haiwan',
-    'E495':'Sorbitan Monopalmitate — Boleh dari lemak haiwan',
-    'E570':'Stearic Acid — Sering lemak babi',
-    'E572':'Magnesium Stearate — Sering lemak babi',
-    'E322':'Lecithin — Halal jika soya sahaja',
-    'E631':'Disodium Inosinate — Halal jika sumber tumbuhan',
-    'E635':'Disodium Ribonucleotide — Halal jika sumber tumbuhan',
-    'E920':'L-Cysteine — Semak sumber (boleh dari rambut babi)',
-    'E101':'Riboflavin — Bergantung sumber',
-    'E140':'Chlorophyll — Isu pelarut',
-    'E141':'Copper Chlorophyllin — Isu pelarut',
-    'E100':'Curcumin/Kunyit — Selamat (tumbuhan)',
-    'E160a':'Beta-Carotene — Selamat (tumbuhan)',
-    'E200':'Sorbic Acid — Selamat (pengawet sintetik)',
-    'E202':'Potassium Sorbate — Selamat (pengawet)',
-    'E300':'Ascorbic Acid/Vitamin C — Selamat',
-    'E330':'Citric Acid — Selamat (asid sitrik)',
-    'E400':'Alginic Acid — Selamat (rumpai laut)',
-    'E440':'Pectin — Selamat (buah-buahan)',
-    'E621':'MSG — Selamat (sintetik)',
-    'E950':'Acesulfame K — Selamat (pemanis sintetik)',
-    'E951':'Aspartame — Selamat (pemanis sintetik)',
-    'E955':'Sucralose — Selamat (pemanis sintetik)',
-  };
+  // ECODE_DESC moved to halal-db.json
 
   function addEcodeFromSelect(sel) {
     const val = sel.value;
