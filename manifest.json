@@ -2,8 +2,8 @@
   "name": "Jimat — Best Buy Malaysia",
   "short_name": "Jimat",
   "description": "Bandingkan harga, semak halal, jimat lebih",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/JimatPRO/",
+  "scope": "/JimatPRO/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d1f17",
@@ -19,13 +19,25 @@
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon.png",
@@ -40,7 +52,7 @@
       "name": "Bandingkan Harga",
       "short_name": "Compare",
       "description": "Terus ke halaman bandingkan harga",
-      "url": "./?tab=compare",
+      "url": "/JimatPRO/?tab=compare",
       "icons": [
         {
           "src": "icon-192.png",
@@ -52,7 +64,7 @@
       "name": "Semak Halal",
       "short_name": "Halal",
       "description": "Terus ke semakan halal",
-      "url": "./?tab=info",
+      "url": "/JimatPRO/?tab=info",
       "icons": [
         {
           "src": "icon-192.png",
