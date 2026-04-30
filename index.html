@@ -309,93 +309,93 @@
 
 
   <div id="tab-info" class="section">
-
-    <!-- INGREDIENT CHECKER -->
     <div class="info-card">
-      <div class="info-section-title" id="info-title-type">✍️ Taip atau Tampal Bahan</div>
-      <textarea class="ingredient-input" id="ingredient-input" placeholder="cth. Air, Gula, E471, Gelatin, E120..."></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="btn btn-primary" onclick="checkIngredients()" id="info-check-btn" style="margin-bottom:0;flex:1;">Semak Halal</button>
-        <button onclick="resetIngredients()" id="info-reset-btn" style="flex-shrink:0;padding:8px 12px;font-size:0.65rem;border-radius:8px;border:1.5px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;">✕ Reset</button>
-      </div>
-      <!-- Result box -->
-      <div id="halal-result" class="halal-result"></div>
-      <!-- E-code selector -->
-      <div style="margin-top:10px;">
-        <label class="field-label" id="info-ecode-label">SEMAK E-KOD BIASA</label>
-        <select id="ecode-select" onchange="addEcodeFromSelect(this)" style="width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:7px 8px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);">
-          <option value="">— pilih e-kod —</option>
-          <optgroup label="🔴 Haram">
-            <option value="E120">E120</option>
-            <option value="E441">E441</option>
-            <option value="E542">E542</option>
-            <option value="E904">E904</option>
-            <option value="E1510">E1510</option>
-            <option value="E1505">E1505</option>
-            <option value="E1517">E1517</option>
-            <option value="E1518">E1518</option>
-          </optgroup>
-          <optgroup label="🟠 Emulsifier">
-            <option value="E422">E422</option>
-            <option value="E470">E470</option>
-            <option value="E471">E471</option>
-            <option value="E472">E472</option>
-            <option value="E472a">E472a</option>
-            <option value="E472b">E472b</option>
-            <option value="E472c">E472c</option>
-            <option value="E472e">E472e</option>
-          </optgroup>
-          <optgroup label="🟠 Stearates">
-            <option value="E481">E481</option>
-            <option value="E482">E482</option>
-            <option value="E483">E483</option>
-            <option value="E491">E491</option>
-            <option value="E492">E492</option>
-            <option value="E493">E493</option>
-            <option value="E494">E494</option>
-            <option value="E495">E495</option>
-            <option value="E570">E570</option>
-            <option value="E572">E572</option>
-          </optgroup>
-          <optgroup label="🟡 Semak Sumber">
-            <option value="E322">E322</option>
-            <option value="E631">E631</option>
-            <option value="E635">E635</option>
-            <option value="E920">E920</option>
-            <option value="E101">E101</option>
-            <option value="E140">E140</option>
-            <option value="E141">E141</option>
-          </optgroup>
-          <optgroup label="✅ Selamat">
-            <option value="E100">E100</option>
-            <option value="E160a">E160a</option>
-            <option value="E200">E200</option>
-            <option value="E202">E202</option>
-            <option value="E300">E300</option>
-            <option value="E330">E330</option>
-            <option value="E400">E400</option>
-            <option value="E440">E440</option>
-            <option value="E621">E621</option>
-            <option value="E950">E950</option>
-            <option value="E951">E951</option>
-            <option value="E955">E955</option>
-          </optgroup>
-        </select>
-      </div>
-    </div>
 
-    <!-- SEARCH SECTION -->
-    <div class="info-card">
-      <div class="info-section-title" id="info-title-search">🔎 Cari Maklumat Produk</div>
-      <input type="text" id="search-product-input" placeholder="cth. Milo, Maggi Mee..." style="margin-bottom:8px;">
+      <div class="info-section-title" id="info-title-type">✍️ Type or Paste Ingredients</div>
+
+      <div id="halal-result" class="halal-result" style="margin-bottom:8px;"></div>
+
+      <textarea class="ingredient-input" id="ingredient-input" placeholder="e.g. E471, E120, Gelatin..." onblur="if(this.value.trim()) checkIngredients();" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();checkIngredients();}"></textarea>
+      <div style="font-size:0.58rem;color:var(--text3);margin-top:3px;" id="info-input-hint">Press Enter or tap away to check</div>
+
+      <div style="border-top:1px solid var(--border);margin:12px 0;"></div>
+
+      <label class="field-label" id="info-ecode-label">COMMON E-CODES</label>
+      <select id="ecode-select" onchange="addEcodeFromSelect(this)" style="width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:7px 8px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);">
+        <option value="">— select e-code —</option>
+        <optgroup label="🔴 Haram">
+          <option value="E120">E120</option>
+          <option value="E441">E441</option>
+          <option value="E542">E542</option>
+          <option value="E904">E904</option>
+          <option value="E1510">E1510</option>
+          <option value="E1505">E1505</option>
+          <option value="E1517">E1517</option>
+          <option value="E1518">E1518</option>
+        </optgroup>
+        <optgroup label="🟠 Emulsifier">
+          <option value="E422">E422</option>
+          <option value="E470">E470</option>
+          <option value="E471">E471</option>
+          <option value="E472">E472</option>
+          <option value="E472a">E472a</option>
+          <option value="E472b">E472b</option>
+          <option value="E472c">E472c</option>
+          <option value="E472e">E472e</option>
+        </optgroup>
+        <optgroup label="🟠 Stearates">
+          <option value="E481">E481</option>
+          <option value="E482">E482</option>
+          <option value="E483">E483</option>
+          <option value="E491">E491</option>
+          <option value="E492">E492</option>
+          <option value="E493">E493</option>
+          <option value="E494">E494</option>
+          <option value="E495">E495</option>
+          <option value="E570">E570</option>
+          <option value="E572">E572</option>
+        </optgroup>
+        <optgroup label="🟡 Semak Sumber">
+          <option value="E322">E322</option>
+          <option value="E631">E631</option>
+          <option value="E635">E635</option>
+          <option value="E920">E920</option>
+          <option value="E101">E101</option>
+          <option value="E140">E140</option>
+          <option value="E141">E141</option>
+        </optgroup>
+        <optgroup label="✅ Selamat">
+          <option value="E100">E100</option>
+          <option value="E160a">E160a</option>
+          <option value="E200">E200</option>
+          <option value="E202">E202</option>
+          <option value="E300">E300</option>
+          <option value="E330">E330</option>
+          <option value="E400">E400</option>
+          <option value="E440">E440</option>
+          <option value="E621">E621</option>
+          <option value="E950">E950</option>
+          <option value="E951">E951</option>
+          <option value="E955">E955</option>
+        </optgroup>
+      </select>
+
+      <div style="border-top:1px solid var(--border);margin:12px 0;"></div>
+
+      <div class="info-section-title" id="info-title-search">🔎 Search Product Info</div>
+      <input type="text" id="search-product-input" placeholder="e.g. Milo, Maggi Mee..." style="margin-bottom:8px;">
       <div class="info-search-grid">
         <button class="info-search-btn blue" onclick="searchProduct('halal ingredients')">🔍 <span id="s1">Halal Info</span></button>
         <button class="info-search-btn green" onclick="searchProduct('vegetarian vegan ingredients')">🌱 <span id="s2">Vegetarian</span></button>
-        <button class="info-search-btn red" onclick="searchProduct('e-code number ingredients list')">🧪 <span id="s3">E-Kod</span></button>
-        <button class="info-search-btn purple" onclick="searchProduct('nutrition facts calories')">📊 <span id="s4">Nutrisi</span></button>
+        <button class="info-search-btn red" onclick="searchProduct('e-code number ingredients list')">🧪 <span id="s3">E-Codes</span></button>
+        <button class="info-search-btn purple" onclick="searchProduct('nutrition facts calories')">📊 <span id="s4">Nutrition</span></button>
       </div>
-    </div>
 
+      <div style="border-top:1px solid var(--border);margin:12px 0;"></div>
+
+      <button onclick="resetIngredients()" id="info-reset-btn" style="width:100%;padding:9px;font-size:0.68rem;border-radius:8px;border:1.5px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;">✕ Reset All</button>
+
+    </div>
   </div></div>
 
   <nav class="bottom-nav">
@@ -1155,8 +1155,8 @@
     // Info page lang
     const infoIngInput = document.getElementById('ingredient-input');
     if (infoIngInput) infoIngInput.placeholder = t.infoIngredientPlaceholder;
-    const infoCheckBtn = document.getElementById('info-check-btn');
-    if (infoCheckBtn) infoCheckBtn.textContent = t.infoCheckHalal;
+    const infoInputHint = document.getElementById('info-input-hint');
+    if (infoInputHint) infoInputHint.textContent = lang === 'my' ? 'Tekan Enter atau ketuk luar untuk semak' : 'Press Enter or tap away to check';
     const infoResetBtn = document.getElementById('info-reset-btn');
     if (infoResetBtn) infoResetBtn.textContent = t.infoReset;
     const infoEcodeLabel = document.getElementById('info-ecode-label');
@@ -1462,18 +1462,39 @@
   }
 
   // Authority reference — for showing which authority flags what
+  // Authority sources — JAKIM = Malaysia, IFANCA = USA, HFA = UK, MUIS = Singapore, MUI = Indonesia
   const AUTHORITY_NOTES = {
-    'E120': 'Haram: IFANCA, HFA, MUIS, MUI',
-    'E441': 'Haram: IFANCA, HFA, MUIS, MUI',
-    'E542': 'Haram: IFANCA, HFA',
-    'E1510': 'Haram: IFANCA, HFA, MUIS, MUI',
-    'E904': 'Haram: MUIS',
-    'E471': 'Mushbooh: IFANCA, HFA, MUIS, MUI',
-    'E322': 'Mushbooh: IFANCA, HFA',
-    'E422': 'Mushbooh: IFANCA, MUIS, MUI',
-    'E631': 'Mushbooh: IFANCA',
-    'E635': 'Mushbooh: IFANCA',
-    'E920': 'Mushbooh: MUIS, MUI',
+    // Haram — confirmed by authorities
+    'E120':  { status: 'Haram',     src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
+    'E441':  { status: 'Haram',     src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
+    'E542':  { status: 'Haram',     src: 'JAKIM, IFANCA, HFA' },
+    'E904':  { status: 'Haram',     src: 'JAKIM, MUIS' },
+    'E1510': { status: 'Haram',     src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
+    'E1505': { status: 'Haram',     src: 'JAKIM, MUI' },
+    'E1517': { status: 'Haram',     src: 'JAKIM, MUI' },
+    'E1518': { status: 'Haram',     src: 'JAKIM, MUI' },
+    'E470':  { status: 'Haram',     src: 'JAKIM, MUIS' },
+    'E472':  { status: 'Haram',     src: 'JAKIM, MUIS, MUI' },
+    'E481':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E482':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E483':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E491':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E492':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E493':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E494':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E495':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E570':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    'E572':  { status: 'Haram',     src: 'JAKIM, IFANCA' },
+    // Mushbooh — doubtful
+    'E471':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA, HFA, MUIS, MUI' },
+    'E322':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA, HFA' },
+    'E422':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA, MUIS, MUI' },
+    'E631':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA' },
+    'E635':  { status: 'Mushbooh',  src: 'JAKIM, IFANCA' },
+    'E920':  { status: 'Mushbooh',  src: 'JAKIM, MUIS, MUI' },
+    'E101':  { status: 'Mushbooh',  src: 'HFA' },
+    'E140':  { status: 'Mushbooh',  src: 'HFA' },
+    'E141':  { status: 'Mushbooh',  src: 'HFA' },
   };
 
   function displayHalalResult(found, warnings, unknownText) {
@@ -1501,17 +1522,22 @@
       const warnTitle = lang === 'my' ? 'Tidak Sesuai untuk Muslim \u2014 Mengandungi:' : 'Not Suitable for Muslim \u2014 Contains:';
       let html = '<div class="halal-title">\u26A0\uFE0F ' + warnTitle + '</div>';
       found.forEach(function(item) {
-        const auth = AUTHORITY_NOTES[item.code.toUpperCase()] || '';
+        const authInfo = AUTHORITY_NOTES[item.code.toUpperCase()] || null;
         html += '<div class="halal-item">' +
           '<strong style="color:var(--red);">' + item.code.toUpperCase() + ' — ' + item.name + '</strong>' +
-          '<br>' + item.reason +
-          (auth ? '<br><span style="font-size:0.58rem;color:var(--text3);">' + auth + '</span>' : '') +
+          '<br><span style="font-size:0.68rem;color:var(--text2);">' + item.reason + '</span>' +
+          (authInfo ? '<br><span style="font-size:0.6rem;color:var(--text3);background:rgba(231,76,60,0.12);padding:1px 6px;border-radius:4px;display:inline-block;margin-top:2px;">' + authInfo.status + ': ' + authInfo.src + '</span>' : '') +
           '</div>';
       });
       if (warnings.length > 0) {
         html += '<div style="margin-top:8px;font-size:0.65rem;color:var(--orange);padding-top:6px;border-top:1px solid var(--border);">' + (lang==='my'?'Perlu disemak:':'Also verify:') + '</div>';
         warnings.forEach(function(item) {
-          html += '<div class="halal-item" style="color:var(--orange);">' + item.code + ' — ' + item.name + '<br><em style="font-size:0.62rem;">' + item.note + '</em></div>';
+          const warnAuth = AUTHORITY_NOTES[item.code.toUpperCase()] || null;
+        html += '<div class="halal-item" style="color:var(--orange);">' +
+          item.code.toUpperCase() + ' — ' + item.name +
+          '<br><em style="font-size:0.62rem;color:var(--text2);">' + item.note + '</em>' +
+          (warnAuth ? '<br><span style="font-size:0.6rem;color:var(--text3);background:rgba(230,126,34,0.12);padding:1px 6px;border-radius:4px;display:inline-block;margin-top:2px;">' + warnAuth.status + ': ' + warnAuth.src + '</span>' : '') +
+          '</div>';
         });
       }
       resultEl.innerHTML = html;
@@ -1520,7 +1546,12 @@
       const mushTitle = lang === 'my' ? 'Mushbooh \u2014 Perlu Disemak' : 'Mushbooh \u2014 Needs Verification';
       let html = '<div class="halal-title">\u26A0\uFE0F ' + mushTitle + '</div>';
       warnings.forEach(function(item) {
-        html += '<div class="halal-item" style="color:var(--orange);">' + item.code + ' — ' + item.name + '<br><em style="font-size:0.62rem;">' + item.note + '</em></div>';
+        const warnAuth = AUTHORITY_NOTES[item.code.toUpperCase()] || null;
+        html += '<div class="halal-item" style="color:var(--orange);">' +
+          item.code.toUpperCase() + ' — ' + item.name +
+          '<br><em style="font-size:0.62rem;color:var(--text2);">' + item.note + '</em>' +
+          (warnAuth ? '<br><span style="font-size:0.6rem;color:var(--text3);background:rgba(230,126,34,0.12);padding:1px 6px;border-radius:4px;display:inline-block;margin-top:2px;">' + warnAuth.status + ': ' + warnAuth.src + '</span>' : '') +
+          '</div>';
       });
       resultEl.innerHTML = html;
     } else {
