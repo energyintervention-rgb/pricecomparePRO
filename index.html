@@ -310,98 +310,81 @@
 
   <div id="tab-info" class="section">
 
-    <!-- SCAN SECTION -->
-    <div class="info-card">
-      <div class="info-section-title" id="info-title-scan">📷 Imbas Label Bahan</div>
-      <div class="info-scanner-wrap" id="info-cam-wrap">
-        <video id="info-cam-video" autoplay playsinline muted></video>
-        <div class="info-scanner-overlay">
-          <div class="info-scanner-frame"><div class="info-scanner-line"></div></div>
-          <div class="info-scanner-hint" id="info-scan-hint">Halakan ke teks bahan — tahan diam</div>
-        </div>
-      </div>
-      <canvas id="info-canvas" style="display:none;"></canvas>
-      <img id="info-photo-preview" class="info-photo-preview">
-      <div class="info-cam-status" id="info-cam-status"></div>
-      <div class="info-btn-row">
-        <button class="btn btn-primary" id="info-photo-btn" onclick="toggleInfoCamera()" style="margin-bottom:0;flex:1;">
-          📷 <span id="info-cam-btn-text">Mula Kamera</span>
-        </button>
-        <button class="btn btn-outline" id="info-capture-btn" onclick="captureInfoPhoto()" style="display:none;margin-bottom:0;padding:10px 16px;flex-shrink:0;">⚡</button>
-      </div>
-      <div id="halal-result" class="halal-result"></div>
-    </div>
-
-    <!-- INGREDIENT INPUT -->
+    <!-- INGREDIENT CHECKER -->
     <div class="info-card">
       <div class="info-section-title" id="info-title-type">✍️ Taip atau Tampal Bahan</div>
       <textarea class="ingredient-input" id="ingredient-input" placeholder="cth. Air, Gula, E471, Gelatin, E120..."></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+      <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="btn btn-primary" onclick="checkIngredients()" id="info-check-btn" style="margin-bottom:0;flex:1;">Semak Halal</button>
-        <button onclick="resetIngredients()" id="info-reset-btn" style="flex-shrink:0;padding:8px 12px;font-size:0.65rem;border-radius:8px;border:1.5px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap;">✕ Reset</button>
+        <button onclick="resetIngredients()" id="info-reset-btn" style="flex-shrink:0;padding:8px 12px;font-size:0.65rem;border-radius:8px;border:1.5px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;">✕ Reset</button>
       </div>
+      <!-- Result box -->
+      <div id="halal-result" class="halal-result"></div>
+      <!-- E-code selector -->
       <div style="margin-top:10px;">
-        <label class="field-label" id="info-ecode-label" style="margin-bottom:4px;">SEMAK E-KOD BIASA</label>
+        <label class="field-label" id="info-ecode-label">SEMAK E-KOD BIASA</label>
         <select id="ecode-select" onchange="addEcodeFromSelect(this)" style="width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:7px 8px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);">
-          <option value="">— pilih e-kod untuk semak —</option>
-          <optgroup label="🔴 Haram — Babi / Alkohol">
-            <option value="E120">E120 — Carmine (pewarna serangga)</option>
-            <option value="E441">E441 — Gelatin (tulang/kulit babi)</option>
-            <option value="E542">E542 — Bone Phosphate (tulang haiwan, sering babi)</option>
-            <option value="E904">E904 — Shellac (resin serangga)</option>
-            <option value="E1510">E1510 — Ethanol (alkohol terus)</option>
-            <option value="E1505">E1505 — Triethyl Citrate (derivatif alkohol)</option>
-            <option value="E1517">E1517 — Glyceryl Diacetate (derivatif alkohol)</option>
-            <option value="E1518">E1518 — Glyceryl Triacetate (derivatif alkohol)</option>
+          <option value="">— pilih e-kod —</option>
+          <optgroup label="🔴 Haram">
+            <option value="E120">E120</option>
+            <option value="E441">E441</option>
+            <option value="E542">E542</option>
+            <option value="E904">E904</option>
+            <option value="E1510">E1510</option>
+            <option value="E1505">E1505</option>
+            <option value="E1517">E1517</option>
+            <option value="E1518">E1518</option>
           </optgroup>
-          <optgroup label="🟠 Emulsifier — Semak Sumber">
-            <option value="E422">E422 — Glycerol/Glycerin (haram jika lemak babi)</option>
-            <option value="E470">E470 — Fatty Acid Salts (sering lemak babi)</option>
-            <option value="E471">E471 — Mono &amp; Diglycerides (sering lemak babi)</option>
-            <option value="E472">E472 — Emulsifiers (sering lemak babi)</option>
-            <option value="E472a">E472a — Acetic Acid Esters (semak sumber)</option>
-            <option value="E472b">E472b — Lactic Acid Esters (semak sumber)</option>
-            <option value="E472c">E472c — Citric Acid Esters (semak sumber)</option>
-            <option value="E472e">E472e — DATEM (semak sumber)</option>
+          <optgroup label="🟠 Emulsifier">
+            <option value="E422">E422</option>
+            <option value="E470">E470</option>
+            <option value="E471">E471</option>
+            <option value="E472">E472</option>
+            <option value="E472a">E472a</option>
+            <option value="E472b">E472b</option>
+            <option value="E472c">E472c</option>
+            <option value="E472e">E472e</option>
           </optgroup>
-          <optgroup label="🟠 Stearates — Lemak Babi">
-            <option value="E481">E481 — Sodium Stearoyl Lactylate</option>
-            <option value="E482">E482 — Calcium Stearoyl Lactylate</option>
-            <option value="E483">E483 — Stearyl Tartrate</option>
-            <option value="E491">E491 — Sorbitan Monostearate</option>
-            <option value="E492">E492 — Sorbitan Tristearate</option>
-            <option value="E493">E493 — Sorbitan Monolaurate</option>
-            <option value="E494">E494 — Sorbitan Monooleate</option>
-            <option value="E495">E495 — Sorbitan Monopalmitate</option>
-            <option value="E570">E570 — Stearic Acid (sering lemak babi)</option>
-            <option value="E572">E572 — Magnesium Stearate (sering lemak babi)</option>
+          <optgroup label="🟠 Stearates">
+            <option value="E481">E481</option>
+            <option value="E482">E482</option>
+            <option value="E483">E483</option>
+            <option value="E491">E491</option>
+            <option value="E492">E492</option>
+            <option value="E493">E493</option>
+            <option value="E494">E494</option>
+            <option value="E495">E495</option>
+            <option value="E570">E570</option>
+            <option value="E572">E572</option>
           </optgroup>
-          <optgroup label="🟡 Halal Jika Sumber Betul">
-            <option value="E322">E322 — Lecithin (halal jika soya)</option>
-            <option value="E631">E631 — Disodium Inosinate (halal jika tumbuhan)</option>
-            <option value="E635">E635 — Disodium Ribonucleotide (halal jika tumbuhan)</option>
-            <option value="E920">E920 — L-Cysteine (semak sumber)</option>
+          <optgroup label="🟡 Semak Sumber">
+            <option value="E322">E322</option>
+            <option value="E631">E631</option>
+            <option value="E635">E635</option>
+            <option value="E920">E920</option>
+            <option value="E101">E101</option>
+            <option value="E140">E140</option>
+            <option value="E141">E141</option>
           </optgroup>
-          <optgroup label="✅ Selamat — Tumbuhan/Mineral">
-            <option value="E100">E100 — Curcumin/Turmeric (pewarna semula jadi)</option>
-            <option value="E101">E101 — Riboflavin/Vitamin B2</option>
-            <option value="E160a">E160a — Beta-Carotene (tumbuhan)</option>
-            <option value="E200">E200 — Sorbic Acid (pengawet)</option>
-            <option value="E202">E202 — Potassium Sorbate (pengawet)</option>
-            <option value="E300">E300 — Ascorbic Acid/Vitamin C</option>
-            <option value="E330">E330 — Citric Acid (asid sitrik)</option>
-            <option value="E400">E400 — Alginic Acid (rumpai laut)</option>
-            <option value="E440">E440 — Pectin (buah-buahan)</option>
-            <option value="E621">E621 — MSG/Monosodium Glutamate</option>
-            <option value="E950">E950 — Acesulfame K (pemanis)</option>
-            <option value="E951">E951 — Aspartame (pemanis)</option>
-            <option value="E955">E955 — Sucralose (pemanis)</option>
+          <optgroup label="✅ Selamat">
+            <option value="E100">E100</option>
+            <option value="E160a">E160a</option>
+            <option value="E200">E200</option>
+            <option value="E202">E202</option>
+            <option value="E300">E300</option>
+            <option value="E330">E330</option>
+            <option value="E400">E400</option>
+            <option value="E440">E440</option>
+            <option value="E621">E621</option>
+            <option value="E950">E950</option>
+            <option value="E951">E951</option>
+            <option value="E955">E955</option>
           </optgroup>
         </select>
       </div>
     </div>
 
-    <!-- SEARCH -->
+    <!-- SEARCH SECTION -->
     <div class="info-card">
       <div class="info-section-title" id="info-title-search">🔎 Cari Maklumat Produk</div>
       <input type="text" id="search-product-input" placeholder="cth. Milo, Maggi Mee..." style="margin-bottom:8px;">
@@ -529,7 +512,6 @@
     if (t === 'list') renderList();
     if (t === 'history') renderHistory();
     if (t === 'survey') loadSurveyGallery();
-    if (t !== 'info' && infoCamActive) stopInfoCamera();
     window.scrollTo(0, 0);
   }
 
@@ -754,7 +736,7 @@
   // ============ SURVEY FUNCTIONS ============
   let currentPhotoData = null;
   let infoCamStream = null;
-  let infoCamActive = false;
+  let infoCamActive = false; // kept for switchTab compatibility
 
   function compressImage(dataUrl, maxWidth, quality, callback) {
     const img = new Image();
@@ -1064,16 +1046,16 @@
       infoStartCam: 'Mula Kamera',
       infoCapture: 'Tangkap',
       infoStopCam: 'Henti Kamera',
-      infoCheckHalal: 'Semak Status Halal',
-      infoIngredientPlaceholder: 'cth. Air, Gula, E471, Gelatin, E120...',
+      infoCheckHalal: 'Semak Halal',
+      infoIngredientPlaceholder: 'cth. E471, E120, Gelatin...',
       infoScanTitle: 'Imbas Label Bahan',
-      infoTypeTitle: 'Taip atau Tampal Bahan',
-      infoSearchTitle: 'Cari Maklumat Produk',
-      infoQuickCodes: 'Semak E-Kod Biasa',
+      infoTypeTitle: '✍️ Taip atau Tampal Bahan',
+      infoSearchTitle: '🔎 Cari Maklumat Produk',
+      infoQuickCodes: 'SEMAK E-KOD BIASA',
       infoSearchInputPlaceholder: 'cth. Milo, Maggi Mee...',
-      infoScanHint: 'Halakan ke teks bahan — tahan diam',
-      infoReset: 'Reset',
-      infoS1: 'Halal Info',
+      infoScanHint: 'Halakan ke teks bahan',
+      infoReset: '✕ Reset Semua',
+      infoS1: 'Info Halal',
       infoS2: 'Vegetarian',
       infoS3: 'E-Kod',
       infoS4: 'Nutrisi',
@@ -1134,15 +1116,15 @@
       infoStartCam: 'Start Camera',
       infoCapture: 'Capture',
       infoStopCam: 'Stop Camera',
-      infoCheckHalal: 'Check Halal Status',
-      infoIngredientPlaceholder: 'e.g. Water, Sugar, E471, Gelatin, E120...',
+      infoCheckHalal: 'Check Halal',
+      infoIngredientPlaceholder: 'e.g. E471, E120, Gelatin...',
       infoScanTitle: 'Scan Ingredients Label',
-      infoTypeTitle: 'Type or Paste Ingredients',
-      infoSearchTitle: 'Search Product Info',
-      infoQuickCodes: 'Quick Check Common E-Codes',
+      infoTypeTitle: '✍️ Type or Paste Ingredients',
+      infoSearchTitle: '🔎 Search Product Info',
+      infoQuickCodes: 'COMMON E-CODES',
       infoSearchInputPlaceholder: 'e.g. Milo, Maggi Mee...',
-      infoScanHint: 'Point at ingredients text — hold steady',
-      infoReset: 'Reset',
+      infoScanHint: 'Point at ingredients text',
+      infoReset: '✕ Reset All',
       infoS1: 'Halal Info',
       infoS2: 'Vegetarian',
       infoS3: 'E-Codes',
@@ -1171,32 +1153,36 @@
     if (document.querySelectorAll('.bnav-label')[3]) document.querySelectorAll('.bnav-label')[3].textContent = t.surveyTab || 'Survey';
     if (document.querySelectorAll('.bnav-label')[4]) document.querySelectorAll('.bnav-label')[4].textContent = t.infoTab || 'Info';
     // Info page lang
-    const infoCamBtnText = document.getElementById('info-cam-btn-text');
-    if (infoCamBtnText && !infoCamActive) infoCamBtnText.textContent = t.infoStartCam || 'Start Camera';
-    const infoScanHint = document.getElementById('info-scan-hint');
-    if (infoScanHint) infoScanHint.textContent = t.infoScanHint || 'Point at ingredients text — hold steady';
     const infoIngInput = document.getElementById('ingredient-input');
-    if (infoIngInput) infoIngInput.placeholder = t.infoIngredientPlaceholder || 'e.g. Water, Sugar, E471...';
+    if (infoIngInput) infoIngInput.placeholder = t.infoIngredientPlaceholder;
     const infoCheckBtn = document.getElementById('info-check-btn');
-    if (infoCheckBtn) infoCheckBtn.textContent = t.infoCheckHalal || 'Check Halal';
+    if (infoCheckBtn) infoCheckBtn.textContent = t.infoCheckHalal;
     const infoResetBtn = document.getElementById('info-reset-btn');
-    if (infoResetBtn) infoResetBtn.textContent = t.infoReset || 'Reset';
+    if (infoResetBtn) infoResetBtn.textContent = t.infoReset;
     const infoEcodeLabel = document.getElementById('info-ecode-label');
-    if (infoEcodeLabel) infoEcodeLabel.textContent = t.infoQuickCodes || 'COMMON E-CODES';
+    if (infoEcodeLabel) infoEcodeLabel.textContent = t.infoQuickCodes;
     const searchInput = document.getElementById('search-product-input');
-    if (searchInput) searchInput.placeholder = t.infoSearchInputPlaceholder || 'e.g. Milo...';
+    if (searchInput) searchInput.placeholder = t.infoSearchInputPlaceholder;
+    // E-code select placeholder
+    const ecodeSelect = document.getElementById('ecode-select');
+    if (ecodeSelect && ecodeSelect.options[0]) ecodeSelect.options[0].textContent = lang === 'my' ? '— pilih e-kod —' : '— select e-code —';
     // Section titles
-    const infoT1 = document.getElementById('info-title-scan');
-    if (infoT1) infoT1.textContent = '📷 ' + (t.infoScanTitle || 'Scan Ingredients Label');
     const infoT2 = document.getElementById('info-title-type');
-    if (infoT2) infoT2.textContent = '✍️ ' + (t.infoTypeTitle || 'Type or Paste Ingredients');
+    if (infoT2) infoT2.textContent = t.infoTypeTitle;
     const infoT3 = document.getElementById('info-title-search');
-    if (infoT3) infoT3.textContent = '🔎 ' + (t.infoSearchTitle || 'Search Product Info');
+    if (infoT3) infoT3.textContent = t.infoSearchTitle;
     // Search buttons
-    const s1 = document.getElementById('s1'); if (s1) s1.textContent = t.infoS1 || 'Halal Info';
-    const s2 = document.getElementById('s2'); if (s2) s2.textContent = t.infoS2 || 'Vegetarian';
-    const s3 = document.getElementById('s3'); if (s3) s3.textContent = t.infoS3 || 'E-Codes';
-    const s4 = document.getElementById('s4'); if (s4) s4.textContent = t.infoS4 || 'Nutrition';
+    const s1 = document.getElementById('s1'); if (s1) s1.textContent = t.infoS1;
+    const s2 = document.getElementById('s2'); if (s2) s2.textContent = t.infoS2;
+    const s3 = document.getElementById('s3'); if (s3) s3.textContent = t.infoS3;
+    const s4 = document.getElementById('s4'); if (s4) s4.textContent = t.infoS4;
+    // Update halal result language if visible
+    const halalResult = document.getElementById('halal-result');
+    if (halalResult && halalResult.style.display !== 'none' && halalResult.innerHTML) {
+      // Re-run last check with new language
+      const inp = document.getElementById('ingredient-input');
+      if (inp && inp.value.trim()) checkIngredients(inp.value);
+    }
     // Verdict label
     const verdictLabel = document.querySelector('.verdict-label');
     if (verdictLabel) verdictLabel.textContent = t.bestValue;
@@ -1412,23 +1398,38 @@
     { code: 'rennet', name: 'Rennet', reason: 'Check if animal or microbial source' },
   ];
 
-  // Conditional halal — from e-code-name-use-5.csv
+  // Mushbooh (Doubtful) — cross-referenced from IFANCA, HFA, MUIS, MUI
+  // Sources: authority-haram-non-halal-4.csv
   const WARN_LIST = [
-    { code: 'E471', name: 'Mono & Diglycerides', note: 'Halal only if plant-based' },
-    { code: 'E322', name: 'Lecithin', note: 'Halal only if soy-based, not egg' },
-    { code: 'E631', name: 'Disodium Inosinate', note: 'Halal only if plant-based' },
-    { code: 'E635', name: 'Disodium Ribonucleotide', note: 'Halal only if plant-based' },
-    { code: 'E422', name: 'Glycerin', note: 'Halal only if plant-based' },
-    { code: 'E1505', name: 'Triethyl Citrate', note: 'Halal only if synthetic, haram if ethanol-based' },
-    { code: 'E1517', name: 'Glyceryl Diacetate', note: 'Halal only if synthetic, haram if ethanol-based' },
-    { code: 'E1518', name: 'Glyceryl Triacetate', note: 'Halal only if synthetic, haram if ethanol-based' },
-    { code: 'E920', name: 'L-Cysteine (E920)', note: 'Check source — can be hog hair or human hair' },
-    { code: 'L-cysteine', name: 'L-Cysteine', note: 'Check source — can be hog hair' },
-    { code: 'rennet', name: 'Rennet', note: 'Halal only if microbial or vegetable source' },
-    { code: 'whey', name: 'Whey', note: 'Check if from halal-slaughtered animal' },
-    { code: 'casein', name: 'Casein', note: 'Check animal source' },
-    { code: 'mono-diglycerides', name: 'Mono-Diglycerides', note: 'Halal only if plant-based' },
-    { code: 'glycerides', name: 'Glycerides', note: 'Check if plant or animal source' },
+    // Confirmed doubtful by ALL 4 authorities
+    { code: 'E471', name: 'Mono & Diglycerides', note: 'Doubtful — IFANCA, HFA, MUIS, MUI all flag this. Halal only if plant-based' },
+    { code: 'E322', name: 'Lecithin', note: 'Doubtful — IFANCA & HFA flag this. Halal only if soy-based' },
+    { code: 'E422', name: 'Glycerin', note: 'Doubtful — IFANCA, MUIS, MUI flag this. Halal only if plant-based' },
+    { code: 'E631', name: 'Disodium Inosinate', note: 'Doubtful — IFANCA flags this. Halal only if plant-based' },
+    { code: 'E635', name: 'Disodium Ribonucleotide', note: 'Doubtful — IFANCA flags this. Halal only if plant-based' },
+    // MUIS flags E470-E475 range
+    { code: 'E470', name: 'Fatty Acid Salts (E470)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
+    { code: 'E472', name: 'Emulsifiers (E472)', note: 'Doubtful — MUIS flags this. Check if pig-fat based' },
+    { code: 'E473', name: 'Sucrose Esters (E473)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
+    { code: 'E474', name: 'Sucroglycerides (E474)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
+    { code: 'E475', name: 'Polyglycerol Esters (E475)', note: 'Doubtful — MUIS flags E470-E475. Check source' },
+    // HFA specific flags
+    { code: 'E101', name: 'Riboflavin (E101)', note: 'Doubtful — HFA flags as source-dependent' },
+    { code: 'E140', name: 'Chlorophyll (E140)', note: 'Doubtful — HFA flags solvent issue' },
+    { code: 'E141', name: 'Copper Chlorophyllin (E141)', note: 'Doubtful — HFA flags solvent issue' },
+    // MUIS & MUI flag L-Cysteine
+    { code: 'E920', name: 'L-Cysteine (E920)', note: 'Doubtful — MUIS & MUI flag this. Can be from hog hair' },
+    { code: 'L-cysteine', name: 'L-Cysteine', note: 'Doubtful — check source, can be hog hair or human hair' },
+    // MUI alcohol derivatives
+    { code: 'E1505', name: 'Triethyl Citrate', note: 'Doubtful — MUI: synthetic ethanol may be allowed under thresholds' },
+    { code: 'E1517', name: 'Glyceryl Diacetate', note: 'Doubtful — MUI: check if synthetic or khamr-derived' },
+    { code: 'E1518', name: 'Glyceryl Triacetate', note: 'Doubtful — MUI: check if synthetic or khamr-derived' },
+    // General doubtful ingredients
+    { code: 'rennet', name: 'Rennet', note: 'Doubtful — halal only if microbial or vegetable source' },
+    { code: 'whey', name: 'Whey', note: 'Doubtful — check if from halal-slaughtered animal' },
+    { code: 'casein', name: 'Casein', note: 'Doubtful — check animal source' },
+    { code: 'mono-diglycerides', name: 'Mono-Diglycerides', note: 'Doubtful — halal only if plant-based' },
+    { code: 'glycerides', name: 'Glycerides', note: 'Doubtful — check if plant or animal source' },
   ];
 
   function checkIngredients(text) {
@@ -1446,45 +1447,95 @@
 
     WARN_LIST.forEach(function(item) {
       if (lower.includes(item.code.toLowerCase())) {
-        // Only add warning if not already in haram
-        if (!found.find(f => f.code === item.code)) {
+        if (!found.find(function(f){ return f.code === item.code; })) {
           warnings.push(item);
         }
       }
     });
 
-    displayHalalResult(found, warnings);
+    // If nothing found in library, offer search engine automatically
+    if (found.length === 0 && warnings.length === 0) {
+      displayHalalResult([], [], input.trim());
+    } else {
+      displayHalalResult(found, warnings, null);
+    }
   }
 
-  function displayHalalResult(found, warnings) {
+  // Authority reference — for showing which authority flags what
+  const AUTHORITY_NOTES = {
+    'E120': 'Haram: IFANCA, HFA, MUIS, MUI',
+    'E441': 'Haram: IFANCA, HFA, MUIS, MUI',
+    'E542': 'Haram: IFANCA, HFA',
+    'E1510': 'Haram: IFANCA, HFA, MUIS, MUI',
+    'E904': 'Haram: MUIS',
+    'E471': 'Mushbooh: IFANCA, HFA, MUIS, MUI',
+    'E322': 'Mushbooh: IFANCA, HFA',
+    'E422': 'Mushbooh: IFANCA, MUIS, MUI',
+    'E631': 'Mushbooh: IFANCA',
+    'E635': 'Mushbooh: IFANCA',
+    'E920': 'Mushbooh: MUIS, MUI',
+  };
+
+  function displayHalalResult(found, warnings, unknownText) {
     const resultEl = document.getElementById('halal-result');
     if (!resultEl) return;
     resultEl.style.display = 'block';
 
+    if (unknownText) {
+      // Not found in library — show result + offer search
+      resultEl.className = 'halal-result halal-check';
+      resultEl.innerHTML =
+        '<div class="halal-title">\u2753 Tiada rekod dalam perpustakaan</div>' +
+        '<div style="font-size:0.68rem;color:var(--text2);margin-top:4px;margin-bottom:10px;">' +
+          '"' + unknownText.substring(0,60) + (unknownText.length>60?'...':'') + '" tidak dikesan dalam senarai E-Kod kami.' +
+        '</div>' +
+        '<button onclick="searchUnknown(\'' + unknownText.replace(/'/g,"\'").substring(0,50) + '\')" ' +
+          'style="width:100%;padding:9px;border-radius:8px;background:#4285F4;color:#fff;border:none;font-family:DM Mono,monospace;font-size:0.72rem;font-weight:bold;cursor:pointer;">' +
+          '🔍 Cari di Google' +
+        '</button>';
+      return;
+    }
+
     if (found.length > 0) {
       resultEl.className = 'halal-result halal-warn';
-      let html = '<div class="halal-title">\u26A0\uFE0F Not Suitable for Muslim — Contains:</div>';
+      const warnTitle = lang === 'my' ? 'Tidak Sesuai untuk Muslim \u2014 Mengandungi:' : 'Not Suitable for Muslim \u2014 Contains:';
+      let html = '<div class="halal-title">\u26A0\uFE0F ' + warnTitle + '</div>';
       found.forEach(function(item) {
-        html += '<div class="halal-item"><strong>' + item.code.toUpperCase() + ' — ' + item.name + '</strong><br>' + item.reason + '</div>';
+        const auth = AUTHORITY_NOTES[item.code.toUpperCase()] || '';
+        html += '<div class="halal-item">' +
+          '<strong style="color:var(--red);">' + item.code.toUpperCase() + ' — ' + item.name + '</strong>' +
+          '<br>' + item.reason +
+          (auth ? '<br><span style="font-size:0.58rem;color:var(--text3);">' + auth + '</span>' : '') +
+          '</div>';
       });
       if (warnings.length > 0) {
-        html += '<div style="margin-top:8px;font-size:0.65rem;color:var(--orange);">Also check these:</div>';
+        html += '<div style="margin-top:8px;font-size:0.65rem;color:var(--orange);padding-top:6px;border-top:1px solid var(--border);">' + (lang==='my'?'Perlu disemak:':'Also verify:') + '</div>';
         warnings.forEach(function(item) {
-          html += '<div class="halal-item">' + item.code + ' — ' + item.name + ' (' + item.note + ')</div>';
+          html += '<div class="halal-item" style="color:var(--orange);">' + item.code + ' — ' + item.name + '<br><em style="font-size:0.62rem;">' + item.note + '</em></div>';
         });
       }
       resultEl.innerHTML = html;
     } else if (warnings.length > 0) {
       resultEl.className = 'halal-result halal-check';
-      let html = '<div class="halal-title">\u26A0\uFE0F Needs Verification</div>';
+      const mushTitle = lang === 'my' ? 'Mushbooh \u2014 Perlu Disemak' : 'Mushbooh \u2014 Needs Verification';
+      let html = '<div class="halal-title">\u26A0\uFE0F ' + mushTitle + '</div>';
       warnings.forEach(function(item) {
-        html += '<div class="halal-item">' + item.code + ' — ' + item.name + '<br><em>' + item.note + '</em></div>';
+        html += '<div class="halal-item" style="color:var(--orange);">' + item.code + ' — ' + item.name + '<br><em style="font-size:0.62rem;">' + item.note + '</em></div>';
       });
       resultEl.innerHTML = html;
     } else {
       resultEl.className = 'halal-result halal-ok';
-      resultEl.innerHTML = '<div class="halal-title">\u2705 No Obvious Haram Ingredients Found</div><div style="font-size:0.68rem;color:var(--text2);margin-top:4px;">Always verify with official JAKIM/HALAL certification for full assurance.</div>';
+      const okTitle = lang === 'my' ? 'Tiada Bahan Haram Dikesan' : 'No Haram Ingredients Detected';
+      const okSub = lang === 'my' ? 'Sentiasa sahkan dengan pensijilan JAKIM/HALAL rasmi.' : 'Always verify with official JAKIM/HALAL certification.';
+      resultEl.innerHTML =
+        '<div class="halal-title">\u2705 ' + okTitle + '</div>' +
+        '<div style="font-size:0.68rem;color:var(--text2);margin-top:4px;">' + okSub + '</div>';
     }
+  }
+
+  function searchUnknown(text) {
+    const query = encodeURIComponent(text + ' halal haram ingredients e-code');
+    window.open('https://www.google.com/search?q=' + query, '_blank');
   }
 
   async function toggleInfoCamera() {
@@ -1638,23 +1689,80 @@
     // E-codes now use a select dropdown - nothing to build
   }
 
+  // E-code descriptions for result display
+  const ECODE_DESC = {
+    'E120':'Carmine — Pewarna merah dari serangga',
+    'E441':'Gelatin — Dari tulang/kulit babi',
+    'E542':'Bone Phosphate — Tulang haiwan, sering babi',
+    'E904':'Shellac — Resin dari serangga',
+    'E1510':'Ethanol — Alkohol terus',
+    'E1505':'Triethyl Citrate — Derivatif alkohol',
+    'E1517':'Glyceryl Diacetate — Derivatif alkohol',
+    'E1518':'Glyceryl Triacetate — Derivatif alkohol',
+    'E422':'Glycerol/Glycerin — Haram jika lemak babi',
+    'E470':'Fatty Acid Salts — Sering lemak babi',
+    'E471':'Mono & Diglycerides — Sering lemak babi',
+    'E472':'Emulsifiers — Sering lemak babi',
+    'E472a':'Acetic Acid Esters — Semak sumber',
+    'E472b':'Lactic Acid Esters — Semak sumber',
+    'E472c':'Citric Acid Esters — Semak sumber',
+    'E472e':'DATEM — Semak sumber',
+    'E481':'Sodium Stearoyl Lactylate — Lemak babi',
+    'E482':'Calcium Stearoyl Lactylate — Lemak babi',
+    'E483':'Stearyl Tartrate — Lemak babi',
+    'E491':'Sorbitan Monostearate — Boleh dari lemak haiwan',
+    'E492':'Sorbitan Tristearate — Boleh dari lemak haiwan',
+    'E493':'Sorbitan Monolaurate — Boleh dari lemak haiwan',
+    'E494':'Sorbitan Monooleate — Boleh dari lemak haiwan',
+    'E495':'Sorbitan Monopalmitate — Boleh dari lemak haiwan',
+    'E570':'Stearic Acid — Sering lemak babi',
+    'E572':'Magnesium Stearate — Sering lemak babi',
+    'E322':'Lecithin — Halal jika soya sahaja',
+    'E631':'Disodium Inosinate — Halal jika sumber tumbuhan',
+    'E635':'Disodium Ribonucleotide — Halal jika sumber tumbuhan',
+    'E920':'L-Cysteine — Semak sumber (boleh dari rambut babi)',
+    'E101':'Riboflavin — Bergantung sumber',
+    'E140':'Chlorophyll — Isu pelarut',
+    'E141':'Copper Chlorophyllin — Isu pelarut',
+    'E100':'Curcumin/Kunyit — Selamat (tumbuhan)',
+    'E160a':'Beta-Carotene — Selamat (tumbuhan)',
+    'E200':'Sorbic Acid — Selamat (pengawet sintetik)',
+    'E202':'Potassium Sorbate — Selamat (pengawet)',
+    'E300':'Ascorbic Acid/Vitamin C — Selamat',
+    'E330':'Citric Acid — Selamat (asid sitrik)',
+    'E400':'Alginic Acid — Selamat (rumpai laut)',
+    'E440':'Pectin — Selamat (buah-buahan)',
+    'E621':'MSG — Selamat (sintetik)',
+    'E950':'Acesulfame K — Selamat (pemanis sintetik)',
+    'E951':'Aspartame — Selamat (pemanis sintetik)',
+    'E955':'Sucralose — Selamat (pemanis sintetik)',
+  };
+
   function addEcodeFromSelect(sel) {
     const val = sel.value;
     if (!val) return;
     const inp = document.getElementById('ingredient-input');
     inp.value = (inp.value.trim() ? inp.value.trim() + ', ' : '') + val;
-    inp.focus();
-    // Reset select back to placeholder
+    // Auto check immediately and show result in box
+    checkIngredients(inp.value);
     sel.selectedIndex = 0;
   }
 
   function resetIngredients() {
+    // Reset ingredient input
     document.getElementById('ingredient-input').value = '';
+    // Reset halal result box
     const r = document.getElementById('halal-result');
     r.style.display = 'none';
     r.innerHTML = '';
-    document.getElementById('info-photo-preview').style.display = 'none';
-    document.getElementById('info-photo-preview').src = '';
+    // Reset e-code select
+    const sel = document.getElementById('ecode-select');
+    if (sel) sel.selectedIndex = 0;
+    // Reset search input
+    const searchInp = document.getElementById('search-product-input');
+    if (searchInp) searchInp.value = '';
+    // Scroll to top of info tab
+    window.scrollTo(0, 0);
   }
 
   function searchProduct(suffix) {
