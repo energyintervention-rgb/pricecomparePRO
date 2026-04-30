@@ -982,7 +982,7 @@
               const file = new File([blob], 'price-tag.jpg', {type: 'image/jpeg'});
               const shareData = {
                 title: 'Jimat Price Survey',
-                text: '\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: ' + (p.store||'\u2014') + '\n\uD83D\uDCDD Note: ' + (p.note||'\u2014') + '\n\uD83D\uDCC5 ' + p.date + '\n\n\uD83D\uDD17 Try Jimat: https://energyintervention-rgb.github.io/pricecompare\n_Jimat \u00B7 Beli Bijak Jimat Lebih_',
+                text: '\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: ' + (p.store||'\u2014') + '\n\uD83D\uDCDD Note: ' + (p.note||'\u2014') + '\n\uD83D\uDCC5 ' + p.date + '\n\n\uD83D\uDD17 Try Jimat: https://energyintervention-rgb.github.io/JimatPRO\n_Jimat \u00B7 Beli Bijak Jimat Lebih_',
                 files: [file]
               };
               if (navigator.canShare(shareData)) {
@@ -1001,7 +1001,7 @@
 
   function fallbackShare(p) {
     // Fallback: WhatsApp text only with app link
-    const text = '\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: ' + (p.store||'\u2014') + '\n\uD83D\uDCDD Note: ' + (p.note||'\u2014') + '\n\uD83D\uDCC5 ' + p.date + '\n\n\uD83D\uDD17 Try Jimat: https://energyintervention-rgb.github.io/pricecompare\n\n_Jimat \u00B7 Beli Bijak Jimat Lebih_';
+    const text = '\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: ' + (p.store||'\u2014') + '\n\uD83D\uDCDD Note: ' + (p.note||'\u2014') + '\n\uD83D\uDCC5 ' + p.date + '\n\n\uD83D\uDD17 Try Jimat: https://energyintervention-rgb.github.io/JimatPRO\n\n_Jimat \u00B7 Beli Bijak Jimat Lebih_';
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
   }
 
