@@ -12,6 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Jimat">
   <meta name="application-name" content="Jimat">
   <meta name="theme-color" content="#d4a843">
+  <meta name="app-version" content="700248">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
@@ -162,6 +163,8 @@
     .list-add-row button { width: auto; padding: 7px 16px; margin-bottom: 0; }
 
     body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    .update-banner { display:none; position:fixed; top:0; left:0; right:0; background:var(--gold); color:var(--bg); padding:10px 16px; text-align:center; font-size:0.72rem; font-weight:bold; z-index:9999; cursor:pointer; }
+    .update-banner.show { display:block; }
     .share-card { background: var(--bg2); border: 1.5px solid var(--border2); border-radius: 14px; padding: 16px; margin-top: 10px; display: none; }
     .share-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
     .share-card-logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--gold); }
@@ -234,6 +237,9 @@
   <div style="font-size:0.75rem;color:#6a9a7a;margin-top:6px;letter-spacing:0.15em;">BELI BIJAK · JIMAT LEBIH</div>
 </div>
 
+<div class="update-banner" id="update-banner" onclick="applyUpdate()">
+  🔄 Versi baru tersedia — Ketik untuk kemaskini / New version available — Tap to update
+</div>
 <div class="app">
   <div class="header">
     <div>
@@ -1368,23 +1374,55 @@
 
 
   // ============ PROPER SERVICE WORKER ============
-  // Register proper service worker from sw.js file
+  // ============ SERVICE WORKER — AUTO UPDATE ============
+  let swReg = null;
+
+  function applyUpdate() {
+    // Force reload to get new version
+    document.getElementById('update-banner').classList.remove('show');
+    window.location.reload(true);
+  }
+
   if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
     window.addEventListener('load', function() {
       navigator.serviceWorker.register('/JimatPRO/sw.js', { scope: '/JimatPRO/' })
         .then(function(reg) {
-          console.log('Jimat SW registered, scope:', reg.scope);
-          // Cache main assets
-          if (reg.installing) {
-            caches.open('jimat-v2').then(function(cache) {
-              cache.add(window.location.href).catch(function(){});
-              cache.add('/JimatPRO/halal-db.json').catch(function(){});
+          swReg = reg;
+          console.log('Jimat SW registered v' + (reg.active ? 'active' : 'installing'));
+
+          // Check for updates every 60 seconds
+          setInterval(function() { reg.update(); }, 60000);
+
+          // When new SW is waiting — show update banner
+          reg.addEventListener('updatefound', function() {
+            const newSW = reg.installing;
+            if (!newSW) return;
+            newSW.addEventListener('statechange', function() {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                // New version ready — show banner
+                document.getElementById('update-banner').classList.add('show');
+                console.log('New version ready!');
+              }
             });
-          }
+          });
         })
         .catch(function(err) {
           console.log('SW registration failed:', err);
         });
+
+      // Listen for SW message to reload
+      navigator.serviceWorker.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'SW_UPDATED') {
+          console.log('SW updated to v' + e.data.version);
+          document.getElementById('update-banner').classList.add('show');
+        }
+      });
+
+      // If SW was updated while page was open — reload automatically
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (document.hidden) return; // Don't reload if tab is in background
+        window.location.reload(true);
+      });
     });
   }
 
