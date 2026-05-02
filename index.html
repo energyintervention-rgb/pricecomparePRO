@@ -942,24 +942,36 @@
     const btn = document.getElementById('barcode-btn');
     const status = document.getElementById('ocr-status');
     try {
-      barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      barcodeStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
       video.srcObject = barcodeStream;
       wrap.style.display = 'block';
       barcodeActive = true;
       const t = btn ? btn.querySelector('#barcode-btn-text') : null;
       if (t) t.textContent = lang === 'my' ? 'Henti Scan' : 'Stop Scan';
       if (status) status.textContent = lang === 'my' ? 'Halakan ke barcode produk...' : 'Point at product barcode...';
-      // FIX 2: No hints — more accurate EAN-13 reading
+
+      // Wait for video to be ready before starting decoder
+      await new Promise(function(resolve) {
+        video.onloadedmetadata = resolve;
+        setTimeout(resolve, 1500); // fallback
+      });
+      await video.play();
+
       barcodeReader = new ZXing.BrowserMultiFormatReader();
       await barcodeReader.decodeFromVideoDevice(null, 'barcode-video', async function(result, err) {
-        if (result) {
+        if (result && barcodeActive) {
           const barcode = result.getText();
+          // Beep on successful scan
+          playBeep();
           stopBarcodeScan();
-          if (status) status.textContent = (lang === 'my' ? 'Barcode: ' : 'Barcode: ') + barcode;
+          if (status) status.textContent = (lang === 'my' ? '✅ Barcode: ' : '✅ Barcode: ') + barcode;
           await lookupBarcode(barcode);
         }
       });
     } catch(e) {
+      console.log('Barcode error:', e);
       if (status) status.textContent = lang === 'my' ? 'Kamera tidak tersedia.' : 'Camera not available.';
     }
   }
@@ -1018,6 +1030,8 @@
     window.speechSynthesis.cancel();window.speechSynthesis.speak(utter);
   }
   function updateReadBtn(speaking){const btn=document.getElementById('read-aloud-btn'),txt=document.getElementById('read-btn-text');if(!btn||!txt)return;if(speaking){btn.style.background='var(--green2)';btn.style.color='#fff';txt.textContent=lang==='my'?'Henti bacaan':'Stop reading';}else{btn.style.background='';btn.style.color='';txt.textContent=lang==='my'?'Baca untuk saya':'Read for me';}}
+
+  function playBeep(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.value=1800;gain.gain.setValueAtTime(0.4,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.12);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.12);}catch(e){}}
 
   function playHaramBeep(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,0.3,0.6].forEach(function(delay){const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='square';osc.frequency.value=880;gain.gain.setValueAtTime(0.3,ctx.currentTime+delay);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.2);osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.2);});}catch(e){}}
   function playHalalChime(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,0.15,0.3].forEach(function(delay,i){const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.value=[523,659,784][i];gain.gain.setValueAtTime(0.2,ctx.currentTime+delay);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.4);osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+0.4);});}catch(e){}}
