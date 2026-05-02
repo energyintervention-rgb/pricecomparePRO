@@ -389,8 +389,11 @@
   const STORES=["Giant","Tesco","Mydin","Aeon","Lotus","Cold Storage","99 Speedmart","Other"];
   let currency='RM',items=[],shoppingList=[],history=[];
   let voiceRecognition=null,voiceActive=false,barcodeActive=false,barcodeStream=null,barcodeReader=null,ttsActive=false;
+  let elderlyMode=localStorage.getItem('elderlyMode')==='1';
+  let lang='my';
+  let convFromCode='MYR';
   const CURR_SYMBOLS={MYR:'RM',USD:'$',GBP:'£',EUR:'€',SGD:'S$',AUD:'A$',JPY:'¥',CNY:'¥',THB:'฿',IDR:'Rp',SAR:'﷼',AED:'د.إ'};
-  let convRates={},convFromCode='MYR';
+  let convRates={};
 
   function setCurrency(c){currency=c;document.getElementById('curr-display').textContent=c+' ▾';renderItems();}
   function toggleConverter(){const p=document.getElementById('converter-panel');const open=p.style.display==='none';p.style.display=open?'block':'none';if(open&&!Object.keys(convRates).length)fetchRates();}
@@ -566,7 +569,6 @@
     my:{appName:'Jimat \uD83D\uDED2',tagline:'Bandingkan harga \u00B7 jimat lebih \u00B7 beli bijak',tag:'Jimat \u2014 Best Buy',splashSub:'BELI BIJAK \u00B7 JIMAT LEBIH',compare:'Bandingkan',list:'Senarai',history:'Sejarah',addItem:'+ Tambah Item',comparePrices:'Bandingkan Harga',reset:'Tetapkan Semula',bestValue:'Nilai Terbaik',store:'\u2014 kedai \u2014',storeLabel:'Kedai',storePlaceholder:'\u2014 kedai \u2014',productName:'Nama Produk',price:'Harga',qty:'Kuantiti',unit:'Unit',promo:'% promosi / diskaun',addWinner:'+ Tambah ke Senarai',shareWA:'Kongsi via WhatsApp',listPlaceholder:'Taip nama item...',clearChecked:'Padam Item Ditanda',clearHistory:'Padam Sejarah',noList:'Tiada item lagi.',noHistory:'Tiada sejarah lagi.',useCurrency:'Guna sebagai mata wang saya',myCurrency:'Mata Wang Saya',compareWith:'Bandingkan Dengan',amount:'Amaun',savePct:'Jimat',saveAmt:'Jimat',vsPriciest:'vs paling mahal',itemLabel:'Item',surveyTab:'Survei',surveyBtn:'\uD83D\uDCF7 Ambil Foto Tag Harga',surveySave:'\uD83D\uDCBE Simpan Foto',surveyCancel:'Batal',surveyClear:'\uD83D\uDDD1\uFE0F Padam Semua Foto',surveyStoreLabel:'Kedai',surveyStorePlaceholder:'\u2014 kedai \u2014',surveyNoteLabel:'Nota',surveyNotePlaceholder:'cth. Milo 1kg RM8.90',surveySaving:'Menyimpan...',surveyShareBtn:'Kongsi',surveyDeleteBtn:'Padam',surveyEmpty:'Tiada foto lagi.',infoTab:'Info',infoTypeTitle:'\u270D\uFE0F Taip atau Tampal Bahan',infoSearchTitle:'\uD83D\uDD0E Cari Maklumat Produk',infoQuickCodes:'SEMAK E-KOD BIASA',infoIngredientPlaceholder:'cth. E471, E120, Gelatin...',infoSearchInputPlaceholder:'cth. Milo, Maggi Mee...',infoReset:'\u2715 Reset Semua',infoS1:'Info Halal',infoS2:'Vegetarian',infoS3:'E-Kod',infoS4:'Nutrisi',brightMode:'\u2600\uFE0F Cerah',darkMode:'\uD83C\uDF19 Gelap'},
     en:{appName:'BestBuy \uD83D\uDED2',tagline:'Compare prices \u00B7 save more \u00B7 shop smart',tag:'Smart Shopper',splashSub:'SHOP SMART \u00B7 SAVE MORE',compare:'Compare',list:'List',history:'History',addItem:'+ Add Item',comparePrices:'Compare Prices',reset:'Reset',bestValue:'Best Value',store:'\u2014 store \u2014',storeLabel:'Store',storePlaceholder:'\u2014 store \u2014',productName:'Product Name',price:'Price',qty:'Qty',unit:'Unit',promo:'% promo / discount',addWinner:'+ Add to Shopping List',shareWA:'Share via WhatsApp',listPlaceholder:'Type item name...',clearChecked:'Clear Checked Items',clearHistory:'Clear History',noList:'No items yet.',noHistory:'No history yet.',useCurrency:'Use as my price currency',myCurrency:'My Currency',compareWith:'Compare With',amount:'Amount',savePct:'Save',saveAmt:'Save',vsPriciest:'vs priciest',itemLabel:'Item',surveyTab:'Survey',surveyBtn:'\uD83D\uDCF7 Take Price Tag Photo',surveySave:'\uD83D\uDCBE Save Photo',surveyCancel:'Cancel',surveyClear:'\uD83D\uDDD1\uFE0F Clear All Photos',surveyStoreLabel:'Store',surveyStorePlaceholder:'\u2014 store \u2014',surveyNoteLabel:'Note',surveyNotePlaceholder:'e.g. Milo 1kg RM8.90',surveySaving:'Saving...',surveyShareBtn:'Share',surveyDeleteBtn:'Delete',surveyEmpty:'No photos yet.',infoTab:'Info',infoTypeTitle:'\u270D\uFE0F Type or Paste Ingredients',infoSearchTitle:'\uD83D\uDD0E Search Product Info',infoQuickCodes:'COMMON E-CODES',infoIngredientPlaceholder:'e.g. E471, E120, Gelatin...',infoSearchInputPlaceholder:'e.g. Milo, Maggi Mee...',infoReset:'\u2715 Reset All',infoS1:'Halal Info',infoS2:'Vegetarian',infoS3:'E-Codes',infoS4:'Nutrition',brightMode:'\u2600\uFE0F Bright',darkMode:'\uD83C\uDF19 Dark'}
   };
-  let lang='my';
 
   function setLang(l){
     lang=l;
@@ -837,7 +839,6 @@
   function searchUnknown(text){openExternalUrl('https://www.google.com/search?q='+encodeURIComponent(text+' halal haram ingredients e-code'),text+' \u2014 halal check');}
 
   // FIX 4: mode-toggle ID is correct
-  let elderlyMode=localStorage.getItem('elderlyMode')==='1';
   function toggleElderlyMode(){elderlyMode=!elderlyMode;applyElderlyMode();localStorage.setItem('elderlyMode',elderlyMode?'1':'0');}
   function applyElderlyMode(){
     const btn=document.getElementById('mode-toggle');
