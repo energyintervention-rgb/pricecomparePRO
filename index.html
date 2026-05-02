@@ -2197,30 +2197,58 @@
       return;
     }
     voiceRecognition = new SpeechRecognition();
-    voiceRecognition.lang = lang === 'my' ? 'ms-MY' : 'en-MY';
+    // Try ms-MY first, fallback to ms, then en-US
+    voiceRecognition.lang = lang === 'my' ? 'ms-MY' : 'en-US';
     voiceRecognition.continuous = false;
-    voiceRecognition.interimResults = false;
+    voiceRecognition.interimResults = true;  // Show interim results
 
     voiceRecognition.onstart = function() {
       voiceActive = true;
-      document.getElementById('voice-btn').style.background = 'var(--red)';
-      document.getElementById('voice-btn').textContent = '⏹';
-      showVoiceStatus(lang === 'my' ? '🎤 Bercakap sekarang... cth: "Milo satu kilo RM5.50"' : '🎤 Speak now... e.g: "Milo one kilo RM5.50"');
+      const btn = document.getElementById('voice-btn');
+      if (btn) { btn.style.background = 'var(--red)'; btn.textContent = '⏹'; }
+      showVoiceStatus(lang === 'my' ? '🎤 Bercakap sekarang...' : '🎤 Speak now...');
     };
 
     voiceRecognition.onresult = function(e) {
-      const transcript = e.results[0][0].transcript;
-      showVoiceStatus((lang === 'my' ? 'Didengar: ' : 'Heard: ') + transcript);
-      parseVoiceInput(transcript);
+      let transcript = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      if (e.results[e.results.length-1].isFinal) {
+        showVoiceStatus((lang === 'my' ? '✅ Didengar: ' : '✅ Heard: ') + transcript);
+        parseVoiceInput(transcript);
+        stopVoice();
+      } else {
+        showVoiceStatus('🎤 ' + transcript + '...');
+      }
     };
 
     voiceRecognition.onerror = function(e) {
-      showVoiceStatus(lang === 'my' ? 'Cuba lagi — tekan butang mikrofon' : 'Try again — tap mic button');
+      console.log('Voice error:', e.error);
+      if (e.error === 'language-not-supported') {
+        // Retry with English
+        voiceRecognition.lang = 'en-US';
+        try { voiceRecognition.start(); return; } catch(err) {}
+      }
+      const errMsg = {
+        'no-speech': lang === 'my' ? 'Tiada suara. Cuba lagi.' : 'No speech detected. Try again.',
+        'not-allowed': lang === 'my' ? 'Izin mikrofon ditolak. Benarkan di tetapan.' : 'Mic permission denied. Allow in settings.',
+        'network': lang === 'my' ? 'Masalah rangkaian.' : 'Network error.',
+      };
+      showVoiceStatus(errMsg[e.error] || (lang === 'my' ? 'Ralat. Cuba lagi.' : 'Error. Try again.'));
       stopVoice();
     };
 
-    voiceRecognition.onend = function() { stopVoice(); };
-    voiceRecognition.start();
+    voiceRecognition.onend = function() {
+      if (voiceActive) stopVoice();
+    };
+
+    try {
+      voiceRecognition.start();
+    } catch(e) {
+      showVoiceStatus(lang === 'my' ? 'Tidak dapat mulakan suara.' : 'Cannot start voice.');
+      stopVoice();
+    }
   }
 
   function stopVoice() {
@@ -2416,40 +2444,63 @@
 
   async function lookupBarcode(barcode) {
     const status = document.getElementById('ocr-status');
-    if (status) status.textContent = lang === 'my' ? '⏳ Mencari maklumat produk...' : '⏳ Looking up product...';
+    if (status) status.textContent = (lang === 'my' ? '\u29d0 Mencari produk: ' : '\u29d0 Looking up: ') + barcode;
+
+    switchTab('info');
 
     try {
-      const resp = await fetch('https://world.openfoodfacts.org/api/v2/product/' + barcode + '.json');
+      const resp = await fetch('https://world.openfoodfacts.org/api/v2/product/' + barcode + '.json?fields=product_name,product_name_ms,product_name_en,brands,ingredients_text,ingredients_text_ms,ingredients_text_en');
       const data = await resp.json();
 
       if (data.status === 1 && data.product) {
         const prod = data.product;
-        const name = prod.product_name_ms || prod.product_name || prod.product_name_en || 'Unknown Product';
+        const name = prod.product_name_ms || prod.product_name || prod.product_name_en || barcode;
         const ingredients = prod.ingredients_text_ms || prod.ingredients_text || prod.ingredients_text_en || '';
         const brand = prod.brands || '';
+        if (status) status.textContent = '\u2705 ' + name + (brand ? ' \u2014 ' + brand : '');
 
-        if (status) status.textContent = '✅ ' + name + (brand ? ' (' + brand + ')' : '');
-
-        // Fill ingredient input and check halal
         const inp = document.getElementById('ingredient-input');
-        if (inp && ingredients) {
+        if (inp && ingredients.trim()) {
           inp.value = ingredients.substring(0, 500);
-          // Switch to info tab
-          switchTab('info');
           checkIngredients(inp.value);
-        } else if (inp) {
-          inp.value = name;
-          switchTab('info');
-          if (status) status.textContent = lang === 'my' ? 'Produk dijumpai tapi tiada senarai bahan. Semak manual.' : 'Product found but no ingredients listed. Check manually.';
+        } else {
+          if (inp) inp.value = name;
+          showBarcodeNotFound(name + ' halal ingredients', lang === 'my'
+            ? 'Tiada senarai bahan untuk ' + name + '. Taip bahan dari label atau cari di Google.'
+            : 'No ingredients for ' + name + '. Type from label or search Google.');
         }
       } else {
-        if (status) status.textContent = lang === 'my' ? 'Produk tidak dijumpai dalam pangkalan data.' : 'Product not found in database.';
+        showBarcodeNotFound(barcode + ' halal ingredients', lang === 'my'
+          ? 'Barcode ' + barcode + ' tidak dijumpai. Cuba cari di Google.'
+          : 'Barcode ' + barcode + ' not found. Try Google search.');
+        if (status) status.textContent = lang === 'my' ? 'Tiada rekod: ' + barcode : 'Not found: ' + barcode;
       }
     } catch(e) {
-      if (status) status.textContent = lang === 'my' ? 'Tiada internet atau ralat sambungan.' : 'No internet or connection error.';
+      if (status) status.textContent = lang === 'my' ? 'Tiada internet. Cuba lagi.' : 'No internet. Try again.';
+      const resultEl = document.getElementById('halal-result');
+      if (resultEl) {
+        resultEl.style.display = 'block';
+        resultEl.className = 'halal-result halal-check';
+        resultEl.innerHTML = '<div class="halal-title">\u26a0\ufe0f ' + (lang === 'my' ? 'Tiada sambungan internet' : 'No internet connection') + '</div>';
+      }
     }
   }
 
+  function showBarcodeNotFound(searchQuery, message) {
+    const resultEl = document.getElementById('halal-result');
+    if (!resultEl) return;
+    resultEl.style.display = 'block';
+    resultEl.className = 'halal-result halal-check';
+    const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(searchQuery);
+    resultEl.innerHTML =
+      '<div class="halal-title">\u2753 ' + (lang === 'my' ? 'Tiada rekod dalam pangkalan data' : 'Not found in database') + '</div>' +
+      '<div style="font-size:0.68rem;color:var(--text2);margin:6px 0;">' + message + '</div>' +
+      '<button id="barcode-google-btn" style="width:100%;padding:9px;border-radius:8px;background:#4285F4;color:#fff;border:none;font-family:DM Mono,monospace;font-size:0.72rem;font-weight:bold;cursor:pointer;">' +
+      '\uD83D\uDD0D ' + (lang === 'my' ? 'Cari di Google' : 'Search on Google') + '</button>';
+    document.getElementById('barcode-google-btn').onclick = function() {
+      openExternalUrl(searchUrl, searchQuery);
+    };
+  }
   // ============================================================
   // BACA UNTUK SAYA (Text-to-Speech)
   // ============================================================
