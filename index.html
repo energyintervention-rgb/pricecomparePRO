@@ -871,6 +871,109 @@
   }
 
 
+
+  // ============================================================
+  // OCR SCAN (Tesseract.js)
+  // FIX 3: extracts text from "ingredients" keyword onwards
+  // ============================================================
+  function startOCRScan() { document.getElementById('ocr-input').click(); }
+
+  async function handleOCRImage(event) {
+    const file = event.target.files[0]; if (!file) return; event.target.value = '';
+    const btn = document.getElementById('ocr-btn');
+    const status = document.getElementById('ocr-status');
+    if (btn) btn.disabled = true;
+    if (status) status.textContent = lang === 'my' ? '⏳ Membaca teks... sila tunggu...' : '⏳ Reading text... please wait...';
+    try {
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          compressImage(e.target.result, 1200, 0.85, async function(compressed) {
+            try {
+              const result = await Tesseract.recognize(compressed, 'eng+msa', {
+                logger: function(m) {
+                  if (m.status === 'recognizing text' && status) {
+                    status.textContent = (lang === 'my' ? '⏳ Membaca... ' : '⏳ Reading... ') + Math.round((m.progress || 0) * 100) + '%';
+                  }
+                }
+              });
+              // FIX: extract from ingredients keyword
+              const rawText = result.data.text;
+              if (status) status.textContent = lang === 'my' ? '✅ Teks dibaca! Mencari bahan...' : '✅ Text read! Finding ingredients...';
+              const lowerRaw = rawText.toLowerCase();
+              const kwList = ['ingredients', 'bahan-bahan', 'bahan', 'ramuan', 'kandungan'];
+              let kwIdx = -1;
+              for (const kw of kwList) { const ki = lowerRaw.indexOf(kw); if (ki !== -1) { kwIdx = ki; break; } }
+              const extractedText = kwIdx !== -1 ? rawText.substring(kwIdx).substring(0, 600) : rawText.trim().substring(0, 500);
+              const inp = document.getElementById('ingredient-input');
+              if (inp && extractedText.trim()) {
+                inp.value = extractedText.trim();
+                checkIngredients(inp.value);
+                if (status) status.textContent = lang === 'my' ? '✅ Bahan dijumpai!' : '✅ Ingredients found!';
+              } else {
+                if (status) status.textContent = lang === 'my' ? 'Teks tidak dijumpai. Cuba gambar lebih dekat.' : 'No text found. Try closer photo.';
+              }
+              if (btn) btn.disabled = false;
+              setTimeout(function() { if (status) status.textContent = ''; }, 4000);
+            } catch(ocrErr) {
+              if (status) status.textContent = lang === 'my' ? 'Ralat OCR. Cuba taip manual.' : 'OCR error. Try manually.';
+              if (btn) btn.disabled = false;
+            }
+          });
+        } catch(e) {
+          if (status) status.textContent = lang === 'my' ? 'Ralat memproses gambar.' : 'Image error.';
+          if (btn) btn.disabled = false;
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch(e) {
+      if (status) status.textContent = lang === 'my' ? 'Ralat. Cuba lagi.' : 'Error. Try again.';
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  // ============================================================
+  // BARCODE SCANNER — FIX: no hints for accurate EAN-13 reading
+  // ============================================================
+  async function startBarcodeScan() {
+    if (barcodeActive) { stopBarcodeScan(); return; }
+    const wrap = document.getElementById('barcode-wrap');
+    const video = document.getElementById('barcode-video');
+    const btn = document.getElementById('barcode-btn');
+    const status = document.getElementById('ocr-status');
+    try {
+      barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = barcodeStream;
+      wrap.style.display = 'block';
+      barcodeActive = true;
+      const t = btn ? btn.querySelector('#barcode-btn-text') : null;
+      if (t) t.textContent = lang === 'my' ? 'Henti Scan' : 'Stop Scan';
+      if (status) status.textContent = lang === 'my' ? 'Halakan ke barcode produk...' : 'Point at product barcode...';
+      // FIX 2: No hints — more accurate EAN-13 reading
+      barcodeReader = new ZXing.BrowserMultiFormatReader();
+      await barcodeReader.decodeFromVideoDevice(null, 'barcode-video', async function(result, err) {
+        if (result) {
+          const barcode = result.getText();
+          stopBarcodeScan();
+          if (status) status.textContent = (lang === 'my' ? 'Barcode: ' : 'Barcode: ') + barcode;
+          await lookupBarcode(barcode);
+        }
+      });
+    } catch(e) {
+      if (status) status.textContent = lang === 'my' ? 'Kamera tidak tersedia.' : 'Camera not available.';
+    }
+  }
+
+  function stopBarcodeScan() {
+    if (barcodeReader) { try { barcodeReader.reset(); } catch(e) {} barcodeReader = null; }
+    if (barcodeStream) { barcodeStream.getTracks().forEach(function(t) { t.stop(); }); barcodeStream = null; }
+    const wrap = document.getElementById('barcode-wrap');
+    const btn = document.getElementById('barcode-btn');
+    if (wrap) wrap.style.display = 'none';
+    if (btn) { const t = btn.querySelector('#barcode-btn-text'); if (t) t.textContent = lang === 'my' ? 'Scan Barcode' : 'Scan Barcode'; }
+    barcodeActive = false;
+  }
+
   async function lookupBarcode(barcode) {
     const status = document.getElementById('ocr-status');
     if (status) status.textContent = (lang==='my'?'Mencari: ':'Looking up: ') + barcode;
