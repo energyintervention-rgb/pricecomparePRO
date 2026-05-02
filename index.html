@@ -17,7 +17,7 @@
   <link rel="manifest" href="manifest.json">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -938,65 +938,71 @@
   async function startBarcodeScan() {
     if (barcodeActive) { stopBarcodeScan(); return; }
     const wrap = document.getElementById('barcode-wrap');
-    const video = document.getElementById('barcode-video');
     const btn = document.getElementById('barcode-btn');
     const status = document.getElementById('ocr-status');
+
+    // Check camera permission first
     try {
-      barcodeStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
-      video.srcObject = barcodeStream;
-      wrap.style.display = 'block';
-      barcodeActive = true;
-      const t = btn ? btn.querySelector('#barcode-btn-text') : null;
-      if (t) t.textContent = lang === 'my' ? 'Henti Scan' : 'Stop Scan';
-      if (status) status.textContent = lang === 'my' ? 'Halakan ke barcode produk...' : 'Point at product barcode...';
-
-      await new Promise(function(resolve) { video.onloadedmetadata = resolve; setTimeout(resolve, 2000); });
-      video.play();
-
-      // Poll canvas every 300ms for barcode
-      barcodeReader = new ZXing.BrowserMultiFormatReader();
-      const canvas = document.createElement('canvas');
-      const ctx2d = canvas.getContext('2d');
-      let scanning = true;
-
-      async function scanFrame() {
-        if (!scanning || !barcodeActive) return;
-        if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx2d.drawImage(video, 0, 0, canvas.width, canvas.height);
-          try {
-            const result = barcodeReader.decodeFromCanvas(canvas);
-            if (result) {
-              scanning = false;
-              playBeep();
-              stopBarcodeScan();
-              if (status) status.textContent = '✅ Barcode: ' + result.getText();
-              await lookupBarcode(result.getText());
-              return;
-            }
-          } catch(e) { /* no barcode yet — keep scanning */ }
-        }
-        setTimeout(scanFrame, 400);
-      }
-      scanFrame();
-
+      const test = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      test.getTracks().forEach(function(t) { t.stop(); });
     } catch(e) {
-      console.log('Barcode error:', e);
       if (status) status.textContent = lang === 'my' ? 'Kamera tidak tersedia.' : 'Camera not available.';
+      return;
     }
+
+    wrap.style.display = 'block';
+    barcodeActive = true;
+    const t = btn ? btn.querySelector('#barcode-btn-text') : null;
+    if (t) t.textContent = lang === 'my' ? 'Henti Scan' : 'Stop Scan';
+    if (status) status.textContent = lang === 'my' ? 'Halakan ke barcode produk...' : 'Point at product barcode...';
+
+    Quagga.init({
+      inputStream: {
+        name: 'Live',
+        type: 'LiveStream',
+        target: document.getElementById('barcode-video').parentElement,
+        constraints: { facingMode: 'environment', width: 1280, height: 720 }
+      },
+      decoder: {
+        readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader']
+      },
+      locate: true
+    }, function(err) {
+      if (err) {
+        console.log('Quagga init error:', err);
+        if (status) status.textContent = lang === 'my' ? 'Ralat kamera.' : 'Camera error.';
+        stopBarcodeScan();
+        return;
+      }
+      Quagga.start();
+    });
+
+    Quagga.onDetected(function(data) {
+      const code = data.codeResult.code;
+      if (!code || !barcodeActive) return;
+      // Verify confidence - must have at least 2 consistent reads
+      const decodedCodes = data.codeResult.decodedCodes;
+      const errors = decodedCodes.filter(function(x) { return x.error !== undefined; }).map(function(x) { return x.error; });
+      const avgError = errors.length ? errors.reduce(function(a,b){return a+b;},0)/errors.length : 0;
+      if (avgError > 0.25) return; // low confidence, skip
+
+      playBeep();
+      stopBarcodeScan();
+      if (status) status.textContent = '✅ Barcode: ' + code;
+      lookupBarcode(code);
+    });
   }
+
   function stopBarcodeScan() {
-    if (barcodeReader) { try { barcodeReader.reset(); } catch(e) {} barcodeReader = null; }
-    if (barcodeStream) { barcodeStream.getTracks().forEach(function(t) { t.stop(); }); barcodeStream = null; }
+    try { Quagga.stop(); } catch(e) {}
+    if (barcodeStream) { barcodeStream.getTracks().forEach(function(t){t.stop();}); barcodeStream = null; }
     const wrap = document.getElementById('barcode-wrap');
     const btn = document.getElementById('barcode-btn');
     if (wrap) wrap.style.display = 'none';
-    if (btn) { const t = btn.querySelector('#barcode-btn-text'); if (t) t.textContent = lang === 'my' ? 'Scan Barcode' : 'Scan Barcode'; }
+    if (btn) { const t = btn.querySelector('#barcode-btn-text'); if(t) t.textContent = lang==='my'?'Scan Barcode':'Scan Barcode'; }
     barcodeActive = false;
   }
+
 
   async function lookupBarcode(barcode) {
     const status = document.getElementById('ocr-status');
