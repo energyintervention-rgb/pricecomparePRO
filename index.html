@@ -17,7 +17,7 @@
   <link rel="manifest" href="manifest.json">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1017,72 +1017,90 @@
   // ============================================================
   // BARCODE SCANNER — FIX: no hints for accurate EAN-13 reading
   // ============================================================
+  let lastBarcode = '';
+  let barcodeConfirm = 0;
+  const BARCODE_CONFIRM = 2; // require 3 consistent reads
+
   async function startBarcodeScan() {
     if (barcodeActive) { stopBarcodeScan(); return; }
     const wrap = document.getElementById('barcode-wrap');
     const btn = document.getElementById('barcode-btn');
     const status = document.getElementById('ocr-status');
 
-    // Check camera permission first
-    try {
-      const test = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      test.getTracks().forEach(function(t) { t.stop(); });
-    } catch(e) {
-      if (status) status.textContent = lang === 'my' ? 'Kamera tidak tersedia.' : 'Camera not available.';
-      return;
-    }
-
     wrap.style.display = 'block';
     barcodeActive = true;
+    lastBarcode = ''; barcodeConfirm = 0;
     const t = btn ? btn.querySelector('#barcode-btn-text') : null;
     if (t) t.textContent = lang === 'my' ? 'Henti Scan' : 'Stop Scan';
-    if (status) status.textContent = lang === 'my' ? 'Halakan ke barcode produk...' : 'Point at product barcode...';
+    if (status) status.textContent = lang === 'my' ? 'Memuatkan kamera...' : 'Loading camera...';
 
     Quagga.init({
       inputStream: {
         name: 'Live',
         type: 'LiveStream',
-        target: document.getElementById('barcode-video').parentElement,
-        constraints: { facingMode: 'environment', width: 1280, height: 720 }
+        target: document.getElementById('barcode-wrap'),
+        constraints: {
+          facingMode: 'environment',
+          width: { min: 640, ideal: 1280 },
+          height: { min: 480, ideal: 720 }
+        }
       },
+      locator: { patchSize: 'medium', halfSample: true },
+      numOfWorkers: navigator.hardwareConcurrency > 2 ? 2 : 1,
+      frequency: 10,
       decoder: {
-        readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader']
+        readers: ['ean_reader','ean_8_reader','upc_reader','upc_e_reader','code_128_reader','code_39_reader']
       },
       locate: true
     }, function(err) {
       if (err) {
-        console.log('Quagga init error:', err);
-        if (status) status.textContent = lang === 'my' ? 'Ralat kamera.' : 'Camera error.';
+        console.error('Quagga2 error:', err);
+        if (status) status.textContent = lang === 'my' ? 'Ralat kamera: ' + err.message : 'Camera error: ' + err.message;
         stopBarcodeScan();
         return;
       }
       Quagga.start();
+      // iOS Safari: force playsinline on injected video
+      setTimeout(function() {
+        const v = document.querySelector('#barcode-wrap video');
+        if (v) { v.setAttribute('playsinline',''); v.setAttribute('webkit-playsinline',''); v.muted=true; v.play().catch(function(){}); }
+      }, 600);
+      if (status) status.textContent = lang === 'my' ? 'Halakan ke barcode produk...' : 'Point at product barcode...';
     });
 
-    Quagga.onDetected(function(data) {
-      const code = data.codeResult.code;
+    Quagga.onDetected(function(result) {
+      const code = result.codeResult.code;
+      const format = result.codeResult.format;
       if (!code || !barcodeActive) return;
-      // Verify confidence - must have at least 2 consistent reads
-      const decodedCodes = data.codeResult.decodedCodes;
-      const errors = decodedCodes.filter(function(x) { return x.error !== undefined; }).map(function(x) { return x.error; });
-      const avgError = errors.length ? errors.reduce(function(a,b){return a+b;},0)/errors.length : 0;
-      if (avgError > 0.25) return; // low confidence, skip
 
-      playBeep();
-      stopBarcodeScan();
-      if (status) status.textContent = '✅ Barcode: ' + code;
-      lookupBarcode(code);
+      // Confidence filter
+      const errors = (result.codeResult.decodedCodes || [])
+        .filter(function(x) { return x.error !== undefined; })
+        .map(function(x) { return x.error; });
+      const avgErr = errors.length ? errors.reduce(function(a,b){return a+b;},0)/errors.length : 1;
+      if (avgErr > 0.22) return;
+
+      // Require 3 consistent reads
+      if (code === lastBarcode) { barcodeConfirm++; } else { lastBarcode = code; barcodeConfirm = 1; }
+      if (status) status.textContent = (lang==='my'?'Mengesan... ':'Detecting... ') + barcodeConfirm + '/' + BARCODE_CONFIRM;
+
+      if (barcodeConfirm >= BARCODE_CONFIRM) {
+        playBeep();
+        stopBarcodeScan();
+        if (status) status.textContent = '✅ Barcode: ' + code;
+        lookupBarcode(code);
+      }
     });
   }
 
   function stopBarcodeScan() {
     try { Quagga.stop(); } catch(e) {}
-    if (barcodeStream) { barcodeStream.getTracks().forEach(function(t){t.stop();}); barcodeStream = null; }
+    lastBarcode = ''; barcodeConfirm = 0;
+    barcodeActive = false;
     const wrap = document.getElementById('barcode-wrap');
     const btn = document.getElementById('barcode-btn');
     if (wrap) wrap.style.display = 'none';
     if (btn) { const t = btn.querySelector('#barcode-btn-text'); if(t) t.textContent = lang==='my'?'Scan Barcode':'Scan Barcode'; }
-    barcodeActive = false;
   }
 
 
