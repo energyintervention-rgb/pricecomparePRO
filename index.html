@@ -1383,29 +1383,35 @@
     // Search buttons - different sources
     const searches = [
       {
-        label: isMY ? '🛍️ Cari di Shopee' : '🛍️ Search on Shopee',
-        color: '#EE4D2D',
-        url: 'https://shopee.com.my/search?keyword=' + encodeURIComponent(barcode)
-      },
-      {
-        label: isMY ? '📦 Cari di Lazada' : '📦 Search on Lazada',
-        color: '#0F146D',
-        url: 'https://www.lazada.com.my/catalog/?q=' + encodeURIComponent(barcode)
-      },
-      {
-        label: isMY ? '🔍 Google — Nama Produk' : '🔍 Google — Product Name',
+        label: isMY ? '🔍 Google — Cari Nama Produk' : '🔍 Google — Find Product Name',
         color: '#4285F4',
-        url: 'https://www.google.com/search?q=' + encodeURIComponent(barcode + ' product name brand')
+        url: 'https://www.google.com/search?q=' + encodeURIComponent(barcode + ' barcode product')
+      },
+      {
+        label: isMY ? '🌐 Barcodelookup.com' : '🌐 Barcodelookup.com',
+        color: '#16a085',
+        url: 'https://www.barcodelookup.com/' + barcode
       },
       {
         label: isMY ? '🧪 Semak Bahan (INCIDecoder)' : '🧪 Check Ingredients (INCIDecoder)',
         color: '#8E44AD',
         url: 'https://incidecoder.com/search?query=' + barcode
       },
+    ];
+    // Note: Shopee/Lazada needs product NAME not barcode - shown below
+    const shopeeHint = document.createElement('div');
+    shopeeHint.style.cssText = 'font-size:0.62rem;color:var(--gold);margin:8px 0 4px;';
+    shopeeHint.textContent = isMY ? '💡 Selepas tahu nama produk, cari harga di:' : '💡 Once you know the product name, check price at:';
+    const priceSearches = [
       {
-        label: isMY ? '🌐 Cari di Barcodelookup' : '🌐 Search Barcodelookup',
-        color: '#16a085',
-        url: 'https://www.barcodelookup.com/' + barcode
+        label: '🛍️ Shopee Malaysia',
+        color: '#EE4D2D',
+        url: 'https://shopee.com.my/search?keyword=' + encodeURIComponent(barcode)
+      },
+      {
+        label: '📦 Lazada Malaysia',
+        color: '#0F146D',
+        url: 'https://www.lazada.com.my/catalog/?q=' + encodeURIComponent(barcode)
       },
     ];
 
@@ -1425,6 +1431,19 @@
       btn.onclick = function() { openExternalUrl(s.url, s.label); };
       resultEl.appendChild(btn);
     });
+
+    // Price search section
+    resultEl.appendChild(shopeeHint);
+    const priceRow = document.createElement('div');
+    priceRow.style.cssText = 'display:flex;gap:6px;';
+    priceSearches.forEach(function(s) {
+      const btn = document.createElement('button');
+      btn.style.cssText = 'flex:1;padding:9px 6px;border-radius:8px;background:' + s.color + ';color:#fff;border:none;font-family:DM Mono,monospace;font-size:0.68rem;font-weight:bold;cursor:pointer;text-align:center;';
+      btn.textContent = s.label;
+      btn.onclick = function() { openExternalUrl(s.url, s.label); };
+      priceRow.appendChild(btn);
+    });
+    resultEl.appendChild(priceRow);
 
     // Manual entry prompt
     const hint = document.createElement('div');
