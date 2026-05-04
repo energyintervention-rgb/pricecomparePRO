@@ -236,13 +236,12 @@
 
   <div id="tab-compare" class="section active">
     <div id="items-container"></div>
-    <div style="display:flex;gap:8px;margin-bottom:6px;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
       <button class="btn btn-outline" onclick="addItem()" id="add-item-btn" style="flex:1;margin-bottom:0;">+ Tambah Item</button>
-      <button id="voice-btn" onclick="toggleVoiceInput()"
-        style="flex-shrink:0;padding:10px 16px;border-radius:12px;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:1.2rem;"
-        title="Input Suara — sebut: Milo satu kilo RM5.50">🎤</button>
+      <button onclick="showQuickAdd()"
+        style="flex-shrink:0;padding:10px 16px;border-radius:12px;border:1.5px solid var(--gold);background:var(--bg3);color:var(--gold);cursor:pointer;font-size:1.2rem;"
+        title="Pilih produk">🛒</button>
     </div>
-    <div id="voice-status" style="font-size:0.62rem;color:var(--gold);text-align:center;min-height:16px;margin-bottom:4px;"></div>
     <button class="btn btn-primary" onclick="comparePrices()" id="compare-btn">Bandingkan Harga</button>
     <button class="btn btn-outline" style="color:#c0392b;border-color:#e8c5c0;" onclick="resetAll()" id="reset-btn">Reset</button>
     <div id="verdict"></div>
@@ -391,17 +390,11 @@
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js" defer></script>
 <script>
-  // DISMISS SPLASH IMMEDIATELY — before any other code runs
-  (function() {
-    function dismissSplash() {
-      var s = document.getElementById('splash');
-      if (s) { s.style.opacity='0'; s.style.transition='opacity 0.4s'; setTimeout(function(){ s.style.display='none'; }, 400); }
-    }
-    // Fire after 1.5s no matter what — covers slow network
-    setTimeout(dismissSplash, 1500);
-    // Also fire on load
-    window.addEventListener('load', dismissSplash);
-  })();
+  // DISMISS SPLASH — CSS animation handles it, JS is backup
+  setTimeout(function() {
+    var s = document.getElementById('splash');
+    if (s) { s.style.opacity='0'; setTimeout(function(){ s.style.display='none'; }, 500); }
+  }, 1800);
 
 const UNITS=["g","kg","ml","L","oz","lb","count"];
   const STORES=["Giant","Tesco","Mydin","Aeon","Lotus","Cold Storage","99 Speedmart","Other"];
@@ -479,11 +472,31 @@ const UNITS=["g","kg","ml","L","oz","lb","count"];
     const saveDollar=((worst.price/worstBase-best.price/bestBase)*worstBase).toFixed(2);
     history.unshift({date:new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}),winner:best.label,store:best.store||'\u2014',ppu:best.ppuVal.toFixed(4),ppuLabel:best.ppuLabel,currency:currency,items:parsed.map(function(p){return{name:p.label,store:p.store||''};})});if(history.length>30)history.pop();
     const rankRows=sorted.map(function(p,idx){return'<div class="rank-row'+(idx===0?' best':'')+'"><span class="rank-num">#'+(idx+1)+'</span><div style="flex:1;"><div class="rank-name">'+p.label+'</div>'+(p.store?'<div class="rank-store">'+p.store+'</div>':'')+'</div><div><div class="rank-ppu">'+currency+p.ppuVal.toFixed(4)+' '+p.ppuLabel+'</div>'+(p.discount?'<div style="font-size:0.6rem;color:#2d6a4f;">-'+p.discount+'% promo</div>':'')+'</div></div>';}).join('');
-    const safeName=best.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    verdictEl.innerHTML='<div class="verdict"><div class="verdict-label">'+LANG[lang].bestValue+'</div><div class="verdict-winner">'+best.label+'</div><div class="verdict-ppu">'+currency+best.ppuVal.toFixed(4)+' '+best.ppuLabel+(best.store?' · '+best.store:'')+'</div><div class="pills"><span class="pill">'+LANG[lang].savePct+' '+savePct+'%</span><span class="pill">'+LANG[lang].saveAmt+' '+currency+saveDollar+' '+LANG[lang].vsPriciest+'</span>'+(best.discount?'<span class="pill">'+best.discount+'% promo applied</span>':'')+'</div><button class="add-winner-btn" onclick="addWinnerToList(\''+safeName+'\','+best.price+',\''+(best.store||'')+'\')" >'+LANG[lang].addWinner+'</button></div><div class="ranked-list">'+rankRows+'</div>';
-  }
+    // Build verdict using DOM to avoid string escape issues
+    verdictEl.innerHTML = '';
+    const vDiv = document.createElement('div');
+    vDiv.className = 'verdict';
+    vDiv.innerHTML =
+      '<div class="verdict-label">'+LANG[lang].bestValue+'</div>'+
+      '<div class="verdict-winner">'+best.label+'</div>'+
+      '<div class="verdict-ppu">'+currency+best.ppuVal.toFixed(4)+' '+best.ppuLabel+(best.store?' · '+best.store:'')+'</div>'+
+      '<div class="pills">'+
+        '<span class="pill">'+LANG[lang].savePct+' '+savePct+'%</span>'+
+        '<span class="pill">'+LANG[lang].saveAmt+' '+currency+saveDollar+' '+LANG[lang].vsPriciest+'</span>'+
+        (best.discount?'<span class="pill">'+best.discount+'% promo applied</span>':'')+
+      '</div>';
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-winner-btn';
+    addBtn.textContent = LANG[lang].addWinner;
+    addBtn.onclick = function() { addWinnerToList(best.label, best.price, best.store||''); };
+    vDiv.appendChild(addBtn);
+    verdictEl.appendChild(vDiv);
+    const rankDiv = document.createElement('div');
+    rankDiv.className = 'ranked-list';
+    rankDiv.innerHTML = rankRows;
+    verdictEl.appendChild(rankDiv);
 
-  function addWinnerToList(name,price,store){shoppingList.push({name:name,price:parseFloat(price)||0,store:store,checked:false});switchTab('list');}
+    function addWinnerToList(name,price,store){shoppingList.push({name:name,price:parseFloat(price)||0,store:store,checked:false});switchTab('list');}
   function addToListManual(){const inp=document.getElementById('list-input'),val=inp.value.trim();if(!val)return;shoppingList.push({name:val,price:0,store:'',checked:false});inp.value='';renderList();}
 
   function renderList(){
@@ -639,7 +652,140 @@ const UNITS=["g","kg","ml","L","oz","lb","count"];
 
   }
 
-  addItem();addItem();buildEcodePills();loadHalalDB();setLang('my');switchTab('compare');
+
+  // ============================================================
+  // QUICK-ADD PRODUCT LIST
+  // ============================================================
+  const QUICK_PRODUCTS = {
+    my: {
+      'Beras & Bijirin': ['Beras 5kg','Beras 10kg','Oat Quaker','Milo Cereal','Cornflakes'],
+      'Minuman': ['Milo 1kg','Milo 400g','Nescafe 200g','Nestea 500g','Teh Tarik 1L','Air Kotak 250ml','Ribena 1L'],
+      'Susu & Dairy': ['Susu Segar 1L','Susu Dutch Lady 1L','Susu F&N 1L','Susu Pekat 500g','Yakult 5biji','Yogurt 135g'],
+      'Roti & Biskut': ['Gardenia 400g','High 5 400g','Merry 400g','Biskut Marie','Biskut Crackers','Roti Canai'],
+      'Mi & Pasta': ['Maggi Mee 5bungkus','Mee Segera 5bungkus','Bihun','Mihun','Pasta Prego','Mi Kuning'],
+      'Minyak & Sos': ['Minyak Masak 1L','Minyak Masak 2L','Sos Tomato','Sos Cili','Kicap 500ml','Oyster Sauce'],
+      'Tepung & Gula': ['Tepung Gandum 1kg','Gula Pasir 1kg','Gula Perang 1kg','Tepung Beras','Tepung Jagung'],
+      'Sabun & Pencuci': ['Sabun Mandi','Shampoo','Pencuci Pinggan','Detergen 1kg','Softlan 1L','Sunlight'],
+      'Barang Dapur': ['Garam 1kg','Lada Hitam','Kunyit','Santan 200ml','Telur 10biji','Telur 30biji'],
+      'Buah & Sayur': ['Pisang','Epal','Tomato 500g','Bawang Besar','Bawang Putih','Bayam','Kangkung'],
+      'Daging & Ayam': ['Ayam 1kg','Ayam 1.5kg','Daging Lembu 500g','Ikan Bilis 250g','Udang 500g'],
+      'Bayi': ['Susu Formula 900g','Lampin','Bedak Bayi','Minyak Bayi','Sabun Bayi'],
+    },
+    en: {
+      'Rice & Grains': ['Rice 5kg','Rice 10kg','Quaker Oat','Milo Cereal','Cornflakes'],
+      'Drinks': ['Milo 1kg','Milo 400g','Nescafe 200g','Nestea 500g','Teh Tarik 1L','Juice Box 250ml','Ribena 1L'],
+      'Milk & Dairy': ['Fresh Milk 1L','Dutch Lady 1L','F&N Milk 1L','Condensed Milk 500g','Yakult 5pcs','Yogurt 135g'],
+      'Bread & Biscuits': ['Gardenia 400g','High 5 400g','Merry 400g','Marie Biscuit','Crackers','Roti Canai'],
+      'Noodles & Pasta': ['Maggi Mee 5pcs','Instant Noodle 5pcs','Vermicelli','Rice Noodle','Pasta','Yellow Noodle'],
+      'Oil & Sauce': ['Cooking Oil 1L','Cooking Oil 2L','Tomato Sauce','Chilli Sauce','Soy Sauce 500ml','Oyster Sauce'],
+      'Flour & Sugar': ['Wheat Flour 1kg','White Sugar 1kg','Brown Sugar 1kg','Rice Flour','Corn Starch'],
+      'Soap & Cleaning': ['Soap','Shampoo','Dish Wash','Detergent 1kg','Softlan 1L','Sunlight'],
+      'Kitchen Essentials': ['Salt 1kg','Black Pepper','Turmeric','Coconut Milk 200ml','Eggs 10pcs','Eggs 30pcs'],
+      'Fruits & Veg': ['Banana','Apple','Tomato 500g','Onion','Garlic','Spinach','Water Spinach'],
+      'Meat & Seafood': ['Chicken 1kg','Chicken 1.5kg','Beef 500g','Dried Anchovies 250g','Prawn 500g'],
+      'Baby': ['Formula Milk 900g','Diapers','Baby Powder','Baby Oil','Baby Soap'],
+    }
+  };
+
+  function showQuickAdd() {
+    const existing = document.getElementById('quick-add-overlay');
+    if (existing) { existing.remove(); return; }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'quick-add-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-end;';
+
+    const panel = document.createElement('div');
+    panel.style.cssText = 'background:var(--bg2);width:100%;max-height:75vh;border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;';
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = 'padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;';
+    const hTitle = document.createElement('div');
+    hTitle.style.cssText = 'font-family:Syne,sans-serif;font-size:0.9rem;font-weight:700;color:var(--gold);';
+    hTitle.textContent = '\uD83D\uDED2 ' + (lang==='my'?'Pilih Produk':'Select Product');
+    const hClose = document.createElement('button');
+    hClose.textContent = '\u2715';
+    hClose.style.cssText = 'background:none;border:none;color:var(--text3);font-size:1.2rem;cursor:pointer;padding:0;';
+    hClose.onclick = function() { overlay.remove(); };
+    header.appendChild(hTitle);
+    header.appendChild(hClose);
+    panel.appendChild(header);
+
+    // Search box
+    const searchWrap = document.createElement('div');
+    searchWrap.style.cssText = 'padding:8px 12px;flex-shrink:0;';
+    const searchInp = document.createElement('input');
+    searchInp.type = 'text';
+    searchInp.placeholder = lang==='my'?'Cari produk...':'Search product...';
+    searchInp.style.cssText = 'width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text);font-family:DM Mono,monospace;font-size:0.75rem;';
+    searchWrap.appendChild(searchInp);
+    panel.appendChild(searchWrap);
+
+    // Scrollable product list
+    const listWrap = document.createElement('div');
+    listWrap.style.cssText = 'overflow-y:auto;flex:1;padding:8px 12px 20px;';
+
+    function renderProducts(filter) {
+      listWrap.innerHTML = '';
+      const cats = QUICK_PRODUCTS[lang] || QUICK_PRODUCTS['my'];
+      Object.keys(cats).forEach(function(cat) {
+        const products = cats[cat].filter(function(p) {
+          return !filter || p.toLowerCase().includes(filter.toLowerCase());
+        });
+        if (!products.length) return;
+
+        const catLabel = document.createElement('div');
+        catLabel.style.cssText = 'font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin:10px 0 5px;';
+        catLabel.textContent = cat;
+        listWrap.appendChild(catLabel);
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+        products.forEach(function(prod) {
+          const chip = document.createElement('button');
+          chip.textContent = prod;
+          chip.style.cssText = 'padding:6px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:DM Mono,monospace;font-size:0.68rem;cursor:pointer;white-space:nowrap;';
+          chip.onclick = function() {
+            addItemWithProduct(prod);
+            overlay.remove();
+          };
+          chip.onmouseover = function() { chip.style.borderColor='var(--gold)'; chip.style.color='var(--gold)'; };
+          chip.onmouseout = function() { chip.style.borderColor='var(--border2)'; chip.style.color='var(--text2)'; };
+          grid.appendChild(chip);
+        });
+        listWrap.appendChild(grid);
+      });
+    }
+
+    renderProducts('');
+    searchInp.oninput = function() { renderProducts(searchInp.value); };
+    panel.appendChild(listWrap);
+    overlay.appendChild(panel);
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
+    setTimeout(function() { searchInp.focus(); }, 100);
+  }
+
+  function addItemWithProduct(productName) {
+    // Add new item card pre-filled with product name
+    items.push({ name: productName, price: '', qty: '', unit: 'g', store: '', discount: '' });
+    renderItems();
+    // Scroll to new item
+    setTimeout(function() {
+      const cards = document.querySelectorAll('.item-card');
+      if (cards.length) cards[cards.length-1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
+  // Run init after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      addItem();addItem();buildEcodePills();loadHalalDB();setLang('my');switchTab('compare');
+    });
+  } else {
+    addItem();addItem();buildEcodePills();loadHalalDB();setLang('my');switchTab('compare');
+  }
 
   // splash handled above
 
@@ -1361,6 +1507,8 @@ const UNITS=["g","kg","ml","L","oz","lb","count"];
     } catch(e) {}
   }
 
+
+}
 </script>
 </body>
 </html>
