@@ -418,23 +418,20 @@
   const DB_SURVEY_VERSION = 1; // IndexedDB photos store version
   let _tesseractWorker = null;
 
-  let _tesseractWorkerLoading = false;
+  let _tesseractWorkerReady = null; // Promise queue — prevents race condition
 
   async function getTesseractWorker() {
     // Already initialized
     if (_tesseractWorker) return _tesseractWorker;
-    // Already loading — wait for it
-    if (_tesseractWorkerLoading) {
-      await new Promise(function(r){ setTimeout(r, 200); });
-      return _tesseractWorker;
-    }
-    _tesseractWorkerLoading = true;
-    try {
-      _tesseractWorker = await Tesseract.createWorker('eng+msa');
-    } finally {
-      _tesseractWorkerLoading = false;
-    }
-    return _tesseractWorker;
+    // Already initializing — wait for the same promise (not a new one)
+    if (_tesseractWorkerReady) return _tesseractWorkerReady;
+    // Start initialization — store promise so concurrent calls reuse it
+    _tesseractWorkerReady = Tesseract.createWorker('eng+msa').then(function(w) {
+      _tesseractWorker = w;
+      _tesseractWorkerReady = null;
+      return w;
+    });
+    return _tesseractWorkerReady;
   }
 
   function setCurrency(c){currency=c;document.getElementById('curr-display').textContent=c+' ▾';renderItems();}
@@ -468,7 +465,7 @@
     document.getElementById('tab-'+t).classList.add('active');
     if(t==='list')renderList();if(t==='history')renderHistory();if(t==='survey')loadSurveyGallery();
     // Terminate Tesseract worker when leaving Info tab — only if fully loaded
-    if(t !== 'info' && _tesseractWorker && !_tesseractWorkerLoading) {
+    if(t !== 'info' && _tesseractWorker && !_tesseractWorkerReady) {
       _tesseractWorker.terminate().catch(function(){});
       _tesseractWorker = null;
     }
