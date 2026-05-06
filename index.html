@@ -414,6 +414,14 @@
   let convFromCode='MYR';
   const CURR_SYMBOLS={MYR:'RM',USD:'$',GBP:'£',EUR:'€',SGD:'S$',AUD:'A$',JPY:'¥',CNY:'¥',THB:'฿',IDR:'Rp',SAR:'﷼',AED:'د.إ'};
   let convRates={};
+  let _tesseractWorker = null;
+
+  async function getTesseractWorker() {
+    if (!_tesseractWorker) {
+      _tesseractWorker = await Tesseract.createWorker('eng+msa');
+    }
+    return _tesseractWorker;
+  }
 
   function setCurrency(c){currency=c;document.getElementById('curr-display').textContent=c+' ▾';renderItems();}
   function toggleConverter(){const p=document.getElementById('converter-panel');const open=p.style.display==='none';p.style.display=open?'block':'none';if(open&&!Object.keys(convRates).length)fetchRates();}
@@ -449,7 +457,15 @@
   }
 
   function toBase(val,unit){const m={g:1,kg:1000,ml:1,L:1000,oz:28.3495,lb:453.592,count:1};return val*(m[unit]||1);}
-  function calcPPU(price,qty,unit){const base=toBase(qty,unit);if(!base)return null;const mult=(unit==='g'||unit==='ml')?100:1;return{val:(price/base)*mult,label:mult>1?'per 100'+unit:'per '+unit};}
+  function calcPPU(price,qty,unit){
+    const base=toBase(qty,unit);if(!base)return null;
+    // sortVal: always price per 1 base unit (for accurate comparison)
+    const sortVal=price/base;
+    // displayVal: price per 100g/ml for readability, per unit otherwise
+    const mult=(unit==='g'||unit==='ml')?100:1;
+    const displayVal=sortVal*mult;
+    return{val:sortVal,displayVal:displayVal,label:mult>1?'per 100'+unit:'per '+unit};
+  }
   function effectivePrice(price,discount){return price*(1-(parseFloat(discount)||0)/100);}
   function addItem(){items.push({name:'',price:'',qty:'',unit:'g',store:'',discount:''});renderItems();}
   function removeItem(i){items.splice(i,1);renderItems();document.getElementById('verdict').innerHTML='';}
@@ -471,16 +487,21 @@
   }
 
   function comparePrices(){
-    const parsed=items.map(function(item,i){const rawPrice=parseFloat(item.price),qty=parseFloat(item.qty);if(!rawPrice||!qty)return null;const price=effectivePrice(rawPrice,item.discount),p=calcPPU(price,qty,item.unit);if(!p)return null;return Object.assign({},item,{rawPrice,price,qty,ppuVal:p.val,ppuLabel:p.label,label:item.name||'Item '+(i+1)});}).filter(Boolean);
+    const parsed=items.map(function(item,i){const rawPrice=parseFloat(item.price),qty=parseFloat(item.qty);if(!rawPrice||!qty)return null;const price=effectivePrice(rawPrice,item.discount),p=calcPPU(price,qty,item.unit);if(!p)return null;return Object.assign({},item,{rawPrice,price,qty,ppuVal:p.val,displayVal:p.displayVal,ppuLabel:p.label,label:item.name||'Item '+(i+1)});}).filter(Boolean);
     const verdictEl=document.getElementById('verdict');
     if(parsed.length<2){verdictEl.innerHTML='<div class="warning-box">'+(lang==='my'?'Tambah sekurang-kurangnya 2 item dengan harga dan kuantiti.':'Add at least 2 items with price and quantity.')+'</div>';return;}
     const sorted=parsed.slice().sort(function(a,b){return a.ppuVal-b.ppuVal;});
     const best=sorted[0],worst=sorted[sorted.length-1];
     const savePct=((worst.ppuVal-best.ppuVal)/worst.ppuVal*100).toFixed(1);
     const bestBase=toBase(best.qty,best.unit),worstBase=toBase(worst.qty,worst.unit);
-    const saveDollar=((worst.price/worstBase-best.price/bestBase)*worstBase).toFixed(2);
-    history.unshift({date:new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}),winner:best.label,store:best.store||'\u2014',ppu:best.ppuVal.toFixed(4),ppuLabel:best.ppuLabel,currency:currency,items:parsed.map(function(p){return{name:p.label,store:p.store||''};})});if(history.length>30)history.pop();
-    const rankRows=sorted.map(function(p,idx){return'<div class="rank-row'+(idx===0?' best':'')+'"><span class="rank-num">#'+(idx+1)+'</span><div style="flex:1;"><div class="rank-name">'+p.label+'</div>'+(p.store?'<div class="rank-store">'+p.store+'</div>':'')+'</div><div><div class="rank-ppu">'+currency+p.ppuVal.toFixed(4)+' '+p.ppuLabel+'</div>'+(p.discount?'<div style="font-size:0.6rem;color:#2d6a4f;">-'+p.discount+'% promo</div>':'')+'</div></div>';}).join('');
+    const saveDollar=(Math.round((worst.price/worstBase-best.price/bestBase)*worstBase*100)/100).toFixed(2);
+    // Dedup: skip if same winner+ppu as last entry
+    const lastH = history[0];
+    const newPPU = best.ppuVal.toFixed(4);
+    if (!lastH || lastH.winner !== best.label || lastH.ppu !== newPPU) {
+      history.unshift({date:new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}),winner:best.label,store:best.store||'\u2014',ppu:best.ppuVal.toFixed(4),ppuLabel:best.ppuLabel,currency:currency,items:parsed.map(function(p){return{name:p.label,store:p.store||''};})});
+    }if(history.length>30)history.pop();
+    const rankRows=sorted.map(function(p,idx){return'<div class="rank-row'+(idx===0?' best':'')+'"><span class="rank-num">#'+(idx+1)+'</span><div style="flex:1;"><div class="rank-name">'+p.label+'</div>'+(p.store?'<div class="rank-store">'+p.store+'</div>':'')+'</div><div><div class="rank-ppu">'+currency+(p.displayVal||p.ppuVal).toFixed(4)+' '+p.ppuLabel+'</div>'+(p.discount?'<div style="font-size:0.6rem;color:#2d6a4f;">-'+p.discount+'% promo</div>':'')+'</div></div>';}).join('');
     // Build verdict using DOM to avoid string escape issues
     verdictEl.innerHTML = '';
     const vDiv = document.createElement('div');
@@ -488,7 +509,7 @@
     vDiv.innerHTML =
       '<div class="verdict-label">'+LANG[lang].bestValue+'</div>'+
       '<div class="verdict-winner">'+best.label+'</div>'+
-      '<div class="verdict-ppu">'+currency+best.ppuVal.toFixed(4)+' '+best.ppuLabel+(best.store?' · '+best.store:'')+'</div>'+
+      '<div class="verdict-ppu">'+currency+(best.displayVal||best.ppuVal).toFixed(4)+' '+best.ppuLabel+(best.store?' · '+best.store:'')+'</div>'+
       '<div class="pills">'+
         '<span class="pill">'+LANG[lang].savePct+' '+savePct+'%</span>'+
         '<span class="pill">'+LANG[lang].saveAmt+' '+currency+saveDollar+' '+LANG[lang].vsPriciest+'</span>'+
@@ -1481,14 +1502,9 @@
     reader.onload = async function(e) {
       compressImage(e.target.result, 1200, 0.85, async function(compressed) {
         try {
-          const result = await Tesseract.recognize(compressed, 'eng+msa', {
-            logger: function(m) {
-              if (m.status === 'recognizing text' && status) {
-                status.textContent = (lang === 'my' ? '⏳ Membaca... ' : '⏳ Reading... ') + Math.round((m.progress || 0) * 100) + '%';
-              }
-            }
-          });
-
+          const worker = await getTesseractWorker();
+          if (status) status.textContent = lang === 'my' ? '⏳ Membaca...' : '⏳ Reading...';
+          const result = await worker.recognize(compressed);
           const text = result.data.text;
           if (status) status.textContent = lang === 'my' ? '✅ Teks dibaca!' : '✅ Text read!';
 
