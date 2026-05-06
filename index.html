@@ -415,12 +415,24 @@
   const CURR_SYMBOLS={MYR:'RM',USD:'$',GBP:'£',EUR:'€',SGD:'S$',AUD:'A$',JPY:'¥',CNY:'¥',THB:'฿',IDR:'Rp',SAR:'﷼',AED:'د.إ'};
   let convRates={};
   const DB_NAME = 'JimatSurvey';
-  const DB_SURVEY_VERSION = 1;
+  const DB_SURVEY_VERSION = 1; // IndexedDB photos store version
   let _tesseractWorker = null;
 
+  let _tesseractWorkerLoading = false;
+
   async function getTesseractWorker() {
-    if (!_tesseractWorker) {
+    // Already initialized
+    if (_tesseractWorker) return _tesseractWorker;
+    // Already loading — wait for it
+    if (_tesseractWorkerLoading) {
+      await new Promise(function(r){ setTimeout(r, 200); });
+      return _tesseractWorker;
+    }
+    _tesseractWorkerLoading = true;
+    try {
       _tesseractWorker = await Tesseract.createWorker('eng+msa');
+    } finally {
+      _tesseractWorkerLoading = false;
     }
     return _tesseractWorker;
   }
@@ -455,8 +467,8 @@
     document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
     document.getElementById('tab-'+t).classList.add('active');
     if(t==='list')renderList();if(t==='history')renderHistory();if(t==='survey')loadSurveyGallery();
-    // Terminate Tesseract worker when leaving Info tab to save memory/battery
-    if(t !== 'info' && _tesseractWorker) {
+    // Terminate Tesseract worker when leaving Info tab — only if fully loaded
+    if(t !== 'info' && _tesseractWorker && !_tesseractWorkerLoading) {
       _tesseractWorker.terminate().catch(function(){});
       _tesseractWorker = null;
     }
@@ -547,7 +559,12 @@
 
   function toggleCheck(i){shoppingList[i].checked=!shoppingList[i].checked;renderList();}
   function removeListItem(i){shoppingList.splice(i,1);renderList();}
-  function clearChecked(){shoppingList=shoppingList.filter(function(i){return!i.checked;});renderList();}
+  function clearChecked(){
+    shoppingList=shoppingList.filter(function(i){return!i.checked;});
+    renderList();
+    // Explicitly hide total bar if list is now empty
+    if(!shoppingList.length) document.getElementById('list-total').style.display='none';
+  }
 
   function renderHistory(){
     const c=document.getElementById('history-container');
@@ -816,7 +833,7 @@
     // Scroll to new item
     setTimeout(function() {
       const cards = document.querySelectorAll('.item-card');
-      if (cards.length) cards[cards.length-1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (cards.length) cards[cards.length-1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
   }
 
@@ -1679,8 +1696,8 @@
       // Scroll to new item
       setTimeout(function() {
         const cards = document.querySelectorAll('.item-card');
-        if (cards.length) cards[cards.length-1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200); // allow keyboard animation
+        if (cards.length) cards[cards.length-1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 300); // allow keyboard + overlay animation
 
       const status = document.getElementById('scan-status');
       if (status) {
