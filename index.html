@@ -414,6 +414,8 @@
   let convFromCode='MYR';
   const CURR_SYMBOLS={MYR:'RM',USD:'$',GBP:'£',EUR:'€',SGD:'S$',AUD:'A$',JPY:'¥',CNY:'¥',THB:'฿',IDR:'Rp',SAR:'﷼',AED:'د.إ'};
   let convRates={};
+  const DB_NAME = 'JimatSurvey';
+  const DB_SURVEY_VERSION = 1;
   let _tesseractWorker = null;
 
   async function getTesseractWorker() {
@@ -453,6 +455,11 @@
     document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
     document.getElementById('tab-'+t).classList.add('active');
     if(t==='list')renderList();if(t==='history')renderHistory();if(t==='survey')loadSurveyGallery();
+    // Terminate Tesseract worker when leaving Info tab to save memory/battery
+    if(t !== 'info' && _tesseractWorker) {
+      _tesseractWorker.terminate().catch(function(){});
+      _tesseractWorker = null;
+    }
     window.scrollTo(0,0);
   }
 
@@ -570,7 +577,7 @@
     if(saveBtn){saveBtn.textContent=LANG[lang].surveySaving;saveBtn.disabled=true;}
     compressImage(currentPhotoData,400,0.35,function(thumbnail){
       const store=document.getElementById('survey-store').value||'Unknown',note=document.getElementById('survey-note').value||'',date=new Date().toLocaleString('en-MY',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),id=Date.now(),entry={id,photo:thumbnail,store,note,date};
-      const request=indexedDB.open('JimatSurvey',1);request.onupgradeneeded=function(e){e.target.result.createObjectStore('photos',{keyPath:'id'});};
+      const request=indexedDB.open(DB_NAME, DB_SURVEY_VERSION);request.onupgradeneeded=function(e){e.target.result.createObjectStore('photos',{keyPath:'id'});};
       request.onsuccess=function(e){const db=e.target.result,tx=db.transaction('photos','readwrite'),addReq=tx.objectStore('photos').add(entry);addReq.onerror=function(err){resetBtn();alert('Save error: '+err.target.error);};tx.oncomplete=function(){resetBtn();cancelSurvey();setTimeout(function(){loadSurveyGallery();},150);};tx.onerror=function(err){resetBtn();alert('Transaction error: '+err.target.error);};};
       request.onerror=function(e){resetBtn();alert('DB error: '+e.target.error);};
     });
@@ -580,7 +587,7 @@
 
   function loadSurveyGallery(){
     const gallery=document.getElementById('survey-gallery');if(!gallery)return;gallery.innerHTML='<div class="survey-empty">Loading...</div>';
-    const request=indexedDB.open('JimatSurvey',1);request.onupgradeneeded=function(e){e.target.result.createObjectStore('photos',{keyPath:'id'});};
+    const request=indexedDB.open(DB_NAME, DB_SURVEY_VERSION);request.onupgradeneeded=function(e){e.target.result.createObjectStore('photos',{keyPath:'id'});};
     request.onsuccess=function(e){
       const db=e.target.result,tx=db.transaction('photos','readonly'),all=tx.objectStore('photos').getAll();
       all.onsuccess=function(){
@@ -602,17 +609,24 @@
 
   function viewPhoto(imgEl){const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;';overlay.onclick=function(){document.body.removeChild(overlay);};const img=document.createElement('img');img.src=imgEl.src;img.style.cssText='max-width:95%;max-height:90vh;border-radius:8px;';overlay.appendChild(img);document.body.appendChild(overlay);}
 
-  function deletePhoto(id){const request=indexedDB.open('JimatSurvey',1);request.onsuccess=function(e){const db=e.target.result,tx=db.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=function(){loadSurveyGallery();};};}
+  function deletePhoto(id){const request=indexedDB.open(DB_NAME, DB_SURVEY_VERSION);request.onsuccess=function(e){const db=e.target.result,tx=db.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=function(){loadSurveyGallery();};};}
 
   function sharePhoto(id){
-    const request=indexedDB.open('JimatSurvey',1);
+    const request=indexedDB.open(DB_NAME, DB_SURVEY_VERSION);
     request.onsuccess=function(e){
       const db=e.target.result,tx=db.transaction('photos','readonly');
       tx.objectStore('photos').get(id).onsuccess=function(ev){
         const p=ev.target.result;if(!p)return;
         if(navigator.share&&navigator.canShare){
-          fetch(p.photo).then(function(r){return r.blob();}).catch(function(){const arr=p.photo.split(','),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]);let n=bstr.length;const u8arr=new Uint8Array(n);while(n--)u8arr[n]=bstr.charCodeAt(n);return new Blob([u8arr],{type:mime});})
-          .then(function(blob){const file=new File([blob],'price-tag.jpg',{type:'image/jpeg'});const shareData={title:'Jimat Price Survey',text:'\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: '+(p.store||'\u2014')+'\n\uD83D\uDCDD Note: '+(p.note||'\u2014')+'\n\uD83D\uDCC5 '+p.date+'\n\n\uD83D\uDD17 https://energyintervention-rgb.github.io/JimatPRO',files:[file]};if(navigator.canShare(shareData)){navigator.share(shareData).catch(function(){fallbackShare(p);});}else{fallbackShare(p);}}).catch(function(){fallbackShare(p);});
+          try{
+            const arr=p.photo.split(','),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]);
+            let n=bstr.length;const u8arr=new Uint8Array(n);while(n--)u8arr[n]=bstr.charCodeAt(n);
+            const blob=new Blob([u8arr],{type:mime});
+            const file=new File([blob],'price-tag.jpg',{type:'image/jpeg'});
+            const sd={title:'Jimat Price Survey',text:'\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: '+(p.store||'\u2014')+'\n\uD83D\uDCDD Note: '+(p.note||'\u2014')+'\n\uD83D\uDCC5 '+p.date+'\n\n\uD83D\uDD17 https://energyintervention-rgb.github.io/JimatPRO',files:[file]};
+            if(navigator.canShare(sd)){navigator.share(sd).catch(function(){fallbackShare(p);});}
+            else{fallbackShare(p);}
+          }catch(e){fallbackShare(p);}
         }else{fallbackShare(p);}
       };
     };
@@ -620,7 +634,7 @@
 
   function fallbackShare(p){window.open('https://wa.me/?text='+encodeURIComponent('\uD83D\uDED2 *Jimat Price Survey*\n\n\uD83C\uDFEA Store: '+(p.store||'\u2014')+'\n\uD83D\uDCDD Note: '+(p.note||'\u2014')+'\n\uD83D\uDCC5 '+p.date+'\n\n\uD83D\uDD17 https://energyintervention-rgb.github.io/JimatPRO\n\n_Jimat \u00B7 Beli Bijak Jimat Lebih_'),'_blank');}
 
-  function clearSurvey(){const request=indexedDB.open('JimatSurvey',1);request.onsuccess=function(e){const db=e.target.result,tx=db.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=function(){loadSurveyGallery();};};}
+  function clearSurvey(){const request=indexedDB.open(DB_NAME, DB_SURVEY_VERSION);request.onsuccess=function(e){const db=e.target.result,tx=db.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=function(){loadSurveyGallery();};};}
 
   function resetAll(){items=[];shoppingList=[];document.getElementById('verdict').innerHTML='';document.getElementById('list-container').innerHTML='';document.getElementById('list-total').style.display='none';addItem();addItem();switchTab('compare');window.scrollTo(0,0);}
 
@@ -1666,7 +1680,7 @@
       setTimeout(function() {
         const cards = document.querySelectorAll('.item-card');
         if (cards.length) cards[cards.length-1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
+      }, 200); // allow keyboard animation
 
       const status = document.getElementById('scan-status');
       if (status) {
